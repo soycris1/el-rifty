@@ -43,11 +43,17 @@ const GLOSSARY = {
 
 const GENERIC_TAGS = new Set(['champion', 'signature', 'unique', 'equipment', 'token']);
 const FAVORITES_KEY = 'el-rifty-card-learner-favorites-v1';
+const TRANSLATE_ENDPOINT = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=es&dt=t&q=';
+const KEYWORD_CLASS = {
+  action: 'action', acción: 'action', reaction: 'reaction', reacción: 'reaction', flow: 'flow', flujo: 'flow', assault: 'assault', asalto: 'assault', hidden: 'hidden', oculto: 'hidden', deflect: 'deflect', desviar: 'deflect', ambush: 'ambush', emboscada: 'ambush', backline: 'backline', retaguardia: 'backline', deathknell: 'deathknell', sentencia: 'deathknell', empower: 'empower', potenciar: 'empower', empowered: 'empower', potenciado: 'empower', equip: 'equip', equipar: 'equip', weaponmaster: 'weaponmaster', armero: 'weaponmaster', ganking: 'ganking', hunt: 'hunt', cazar: 'hunt', predict: 'predict', predecir: 'predict', repeat: 'repeat', repetir: 'repeat', shield: 'shield', escudo: 'shield', tank: 'tank', tanque: 'tank', vision: 'vision', visión: 'vision', accelerate: 'accelerate', acelerar: 'accelerate', level: 'level', nivel: 'level', mighty: 'mighty', poderoso: 'mighty', temporary: 'temporary', temporal: 'temporary', unique: 'unique', única: 'unique', unico: 'unique', único: 'unique', unica: 'unique',
+};
 let cards = [];
 let selectedCode = null;
 const activeMechanics = new Set();
 let favoritesOnly = false;
 let compareCodes = [];
+const translationCache = new Map();
+let touchGesture = null;
 
 function loadFavorites() {
   try { const stored = JSON.parse(globalThis.localStorage?.getItem(FAVORITES_KEY) || '[]'); return new Set(Array.isArray(stored) ? stored : []); }
@@ -96,6 +102,49 @@ function normaliseCard(raw) {
 }
 function readable(value) { return String(value || '').replace(/\b\w/g, letter => letter.toUpperCase()); }
 function getCard(code) { return cards.find(card => card.code === code) || null; }
+function keywordCssClass(value) {
+  const normalized = String(value || '').toLowerCase().replace(/^\[|\]$/g, '').trim().split(/\s+/)[0];
+  return KEYWORD_CLASS[normalized] || '';
+}
+function formatCardRules(text = '') {
+  const escaped = escapeHtml(text);
+  const keywordPattern = /\[([^\]\n]{2,28})\]|\b(Action|Acción|Reaction|Reacción|Flow|Flujo|Assault(?:\s+\d+)?|Asalto(?:\s+\d+)?|Hidden|Oculto|Deflect|Ambush|Emboscada|Backline|Retaguardia|Deathknell|Empower(?:ed)?|Potenciado|Equip(?:ar)?|Weaponmaster|Ganking|Hunt|Cazar|Predict|Predecir|Repeat|Repetir|Shield|Escudo|Tank|Tanque|Vision|Visión|Accelerate|Acelerar|Level|Nivel|Mighty|Poderoso|Temporary|Temporal|Unique|Única|Unica|Único|Unico)\b/gi;
+  return escaped.replace(keywordPattern, (match, bracketLabel, bareLabel) => {
+    const label = bracketLabel || bareLabel || match;
+    const className = keywordCssClass(label);
+    return className ? `<span class="rule-keyword kw-${className}">${match}</span>` : match;
+  });
+}
+async function translateCardText(card) {
+  if (!card?.text) return;
+  const target = $('#cardTranslationText');
+  if (!target) return;
+  if (translationCache.has(card.code)) {
+    target.classList.remove('loading', 'error');
+    target.innerHTML = formatCardRules(translationCache.get(card.code));
+    return;
+  }
+  try {
+    const response = await fetch(`${TRANSLATE_ENDPOINT}${encodeURIComponent(card.text)}`);
+    if (!response.ok) throw new Error('Servicio temporalmente no disponible');
+    const payload = await response.json();
+    const translated = Array.isArray(payload?.[0]) ? payload[0].map(part => part?.[0] || '').join('') : '';
+    if (!translated) throw new Error('No llegó una traducción');
+    translationCache.set(card.code, translated);
+    if (selectedCode === card.code && $('#cardTranslationText')) {
+      const currentTarget = $('#cardTranslationText');
+      currentTarget.classList.remove('loading', 'error');
+      currentTarget.innerHTML = formatCardRules(translated);
+    }
+  } catch {
+    if (selectedCode === card.code && $('#cardTranslationText')) {
+      const currentTarget = $('#cardTranslationText');
+      currentTarget.classList.remove('loading');
+      currentTarget.classList.add('error');
+      currentTarget.textContent = 'No se pudo cargar la traducción automática. El texto original permanece arriba como referencia.';
+    }
+  }
+}
 
 function filterCards() {
   const search = $('#learnSearch').value.trim().toLowerCase();
@@ -164,12 +213,13 @@ function renderInspector() {
   const stats = [card.energy !== undefined ? `Energía ${card.energy}` : '', card.might ? `Might ${card.might}` : '', card.power ? `Power ${card.power}` : ''].filter(Boolean).join(' · ');
   const isFavorite = favorites.has(card.code);
   const inComparison = compareCodes.includes(card.code);
-  $('#learnerInspector').innerHTML = `<article class="study-card"><button class="mobile-close" data-close-study aria-label="Cerrar carta">×</button>${card.image ? `<img class="study-art" src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}">` : ''}<div><span class="study-code">${escapeHtml(card.collectionName)} · ${escapeHtml(card.code)}</span><h2>${escapeHtml(card.name)}</h2><p class="study-meta">${escapeHtml(card.type)}${card.domains.length ? ` · ${escapeHtml(card.domains.map(readable).join(' · '))}` : ''}${stats ? ` · ${escapeHtml(stats)}` : ''}</p><div class="study-actions"><button class="favorite ${isFavorite ? 'active' : ''}" data-toggle-favorite><span>♥</span> ${isFavorite ? 'Quitar favorita' : 'Favorita'}</button><button class="compare ${inComparison ? 'active' : ''}" data-toggle-compare>${inComparison ? '✓ En comparación' : '⇄ Comparar carta'}</button></div><div class="mechanic-list">${card.mechanics.length ? card.mechanics.map(mechanic => `<span class="mechanic-badge">${escapeHtml(readable(mechanic))}</span>`).join('') : '<span class="mechanic-badge">Texto de reglas</span>'}</div><p class="study-text">${escapeHtml(card.text || 'No hay texto de reglas disponible para esta impresión.')}</p>${mechanicsGlossary(card)}</div><section class="synergy"><h3>Cartas que podrían jugarse con esta</h3><p>Son sugerencias de estudio por dominios, etiquetas y mecánicas compartidas; confirma siempre la interacción en el texto de ambas cartas.</p><div class="synergy-list">${related.length ? related.map(({ candidate, reasons }) => `<button class="synergy-card" data-learn-card="${escapeHtml(candidate.code)}">${candidate.image ? `<img src="${escapeHtml(candidate.image)}" alt="">` : '<span class="synergy-fallback">✦</span>'}<span><b>${escapeHtml(candidate.name)}</b><span>${escapeHtml(reasons.slice(0, 2).join(' · '))}</span></span></button>`).join('') : '<p class="source-note">Todavía no hay una coincidencia fuerte en el catálogo para esta carta. Prueba con su dominio o sus etiquetas.</p>'}</div><p class="source-note">Colección incluida de Piltover Archive. Las sugerencias no ejecutan ni inventan efectos.</p></section></article>`;
+  $('#learnerInspector').innerHTML = `<article class="study-card"><button class="mobile-close" data-close-study aria-label="Cerrar carta">×</button><p class="mobile-gesture-hint">Desliza ↓ para cerrar · ← / → para cambiar carta</p>${card.image ? `<img class="study-art" src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}">` : ''}<div><span class="study-code">${escapeHtml(card.collectionName)} · ${escapeHtml(card.code)}</span><h2>${escapeHtml(card.name)}</h2><p class="study-meta">${escapeHtml(card.type)}${card.domains.length ? ` · ${escapeHtml(card.domains.map(readable).join(' · '))}` : ''}${stats ? ` · ${escapeHtml(stats)}` : ''}</p><div class="study-actions"><button class="favorite ${isFavorite ? 'active' : ''}" data-toggle-favorite><span>♥</span> ${isFavorite ? 'Quitar favorita' : 'Favorita'}</button><button class="compare ${inComparison ? 'active' : ''}" data-toggle-compare>${inComparison ? '✓ En comparación' : '⇄ Comparar carta'}</button></div><div class="mechanic-list">${card.mechanics.length ? card.mechanics.map(mechanic => `<span class="mechanic-badge">${escapeHtml(readable(mechanic))}</span>`).join('') : '<span class="mechanic-badge">Texto de reglas</span>'}</div><p class="study-text">${formatCardRules(card.text || 'No hay texto de reglas disponible para esta impresión.')}</p><section class="translation"><h3>Traducción al español <small>automática · confirma el original</small></h3><p id="cardTranslationText" class="translation-text loading">Traduciendo esta carta…</p></section>${mechanicsGlossary(card)}</div><section class="synergy"><h3>Cartas que podrían jugarse con esta</h3><p>Son sugerencias de estudio por dominios, etiquetas y mecánicas compartidas; confirma siempre la interacción en el texto de ambas cartas.</p><div class="synergy-list">${related.length ? related.map(({ candidate, reasons }) => `<button class="synergy-card" data-learn-card="${escapeHtml(candidate.code)}">${candidate.image ? `<img src="${escapeHtml(candidate.image)}" alt="">` : '<span class="synergy-fallback">✦</span>'}<span><b>${escapeHtml(candidate.name)}</b><span>${escapeHtml(reasons.slice(0, 2).join(' · '))}</span></span></button>`).join('') : '<p class="source-note">Todavía no hay una coincidencia fuerte en el catálogo para esta carta. Prueba con su dominio o sus etiquetas.</p>'}</div><p class="source-note">Colección incluida de Piltover Archive. Las sugerencias no ejecutan ni inventan efectos.</p></section></article>`;
+  translateCardText(card);
 }
 
 function comparisonCard(card) {
   const stats = [card.energy !== undefined ? `Energía ${card.energy}` : '', card.might ? `Might ${card.might}` : '', card.power ? `Power ${card.power}` : ''].filter(Boolean).join(' · ');
-  return `<article class="compare-card">${card.image ? `<img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}">` : '<span class="synergy-fallback">✦</span>'}<div><span class="study-code">${escapeHtml(card.collectionName)} · ${escapeHtml(card.type)}</span><h3>${escapeHtml(card.name)}</h3><p class="study-meta">${escapeHtml(card.domains.map(readable).join(' · ') || 'Sin dominio')}${stats ? ` · ${escapeHtml(stats)}` : ''}</p><div class="mechanic-list">${card.mechanics.length ? card.mechanics.map(mechanic => `<span class="mechanic-badge">${escapeHtml(readable(mechanic))}</span>`).join('') : '<span class="mechanic-badge">Texto de reglas</span>'}</div><p>${escapeHtml(card.text || 'Sin texto de reglas.')}</p></div></article>`;
+  return `<article class="compare-card">${card.image ? `<img src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}">` : '<span class="synergy-fallback">✦</span>'}<div><span class="study-code">${escapeHtml(card.collectionName)} · ${escapeHtml(card.type)}</span><h3>${escapeHtml(card.name)}</h3><p class="study-meta">${escapeHtml(card.domains.map(readable).join(' · ') || 'Sin dominio')}${stats ? ` · ${escapeHtml(stats)}` : ''}</p><div class="mechanic-list">${card.mechanics.length ? card.mechanics.map(mechanic => `<span class="mechanic-badge">${escapeHtml(readable(mechanic))}</span>`).join('') : '<span class="mechanic-badge">Texto de reglas</span>'}</div><p>${formatCardRules(card.text || 'Sin texto de reglas.')}</p></div></article>`;
 }
 
 function renderCompareTray() {
@@ -199,6 +249,15 @@ function toggleCurrentComparison() {
   else if (compareCodes.length < 2) compareCodes = [...compareCodes, selectedCode];
   else { compareCodes = [compareCodes[1], selectedCode]; }
   renderAll();
+}
+
+function browseStudyCard(delta) {
+  const visibleCards = filterCards();
+  if (visibleCards.length < 2) return;
+  const currentIndex = Math.max(0, visibleCards.findIndex(card => card.code === selectedCode));
+  selectedCode = visibleCards[(currentIndex + delta + visibleCards.length) % visibleCards.length].code;
+  renderAll();
+  openMobileStudy();
 }
 
 function renderAll() {
@@ -242,5 +301,17 @@ $('#clearFilters').addEventListener('click', () => { $('#learnSearch').value = '
 $('#favoriteFilter').addEventListener('click', () => { favoritesOnly = !favoritesOnly; renderAll(); });
 $('#studyScrim').addEventListener('click', closeMobileStudy);
 $('#compareOverlay').addEventListener('click', event => { if (event.target === $('#compareOverlay')) closeComparison(); });
+$('#studyPanel').addEventListener('pointerdown', event => {
+  if (!isMobileView() || event.pointerType === 'mouse' || event.target.closest('button, input, select, a')) return;
+  touchGesture = { id: event.pointerId, x: event.clientX, y: event.clientY };
+});
+$('#studyPanel').addEventListener('pointerup', event => {
+  if (!touchGesture || touchGesture.id !== event.pointerId) return;
+  const deltaX = event.clientX - touchGesture.x; const deltaY = event.clientY - touchGesture.y;
+  touchGesture = null;
+  if (deltaY > 110 && Math.abs(deltaY) > Math.abs(deltaX) * 1.25) { closeMobileStudy(); return; }
+  if (Math.abs(deltaX) > 72 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) browseStudyCard(deltaX < 0 ? 1 : -1);
+});
+$('#studyPanel').addEventListener('pointercancel', () => { touchGesture = null; });
 
 loadCatalog();
