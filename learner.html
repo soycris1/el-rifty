@@ -9,6 +9,40 @@
     <style>
       .favorite-filter,.study-actions button,.compare-tray button,.compare-close{border:1px solid #52707a;border-radius:7px;background:#14313f;color:#dff2f1;padding:.38rem .48rem;font-size:.58rem;font-weight:800}.favorite-filter{width:100%;margin:.28rem 0 .25rem;text-align:left}.favorite-filter.active,.study-actions .favorite.active{border-color:#e27691;background:#43242d;color:#ffd7df}.favorite-filter .heart{color:#ff93a6;font-size:.85rem}.favorite-mark{position:absolute;z-index:2;right:.38rem;top:.35rem;color:#ff96a7;font-size:1rem;text-shadow:0 1px 4px #000}.study-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin:.55rem 0}.study-actions .compare.active{border-color:#d9b960;background:#3a3520;color:#ffe8a6}.translation{margin:.78rem 0;padding:.58rem;border:1px solid #31586a;border-radius:7px;background:#091d2a}.translation h3{margin:0 0 .22rem;color:#9ce8e3;font:700 .8rem Georgia,serif}.translation h3 small{color:#7e9da6;font:600 .48rem Inter,sans-serif}.translation-text{margin:0;color:#d7e8e9;font-size:.68rem;line-height:1.52;white-space:pre-line}.translation-text.loading{color:#8aa8b1;font-style:italic}.translation-text.error{color:#e4abb0}.rule-keyword{font-weight:900;letter-spacing:.015em;text-shadow:0 1px 1px #0008}.kw-action,.kw-assault{color:#f2aa62}.kw-reaction,.kw-deflect,.kw-shield{color:#77d4f0}.kw-flow,.kw-hidden,.kw-vision{color:#ca91ed}.kw-ambush,.kw-backline{color:#e99bc2}.kw-deathknell{color:#ed7f86}.kw-empower,.kw-equip,.kw-weaponmaster{color:#efc86d}.kw-ganking,.kw-hunt,.kw-accelerate{color:#83d69d}.kw-predict,.kw-repeat,.kw-level{color:#b5a6f2}.kw-tank,.kw-mighty,.kw-temporary,.kw-unique{color:#e8d687}.mobile-close{display:none}.mobile-gesture-hint{display:none}.compare-tray{position:fixed;z-index:20;bottom:1rem;left:50%;display:flex;align-items:center;gap:.5rem;width:min(720px,calc(100vw - 2rem));transform:translateX(-50%);padding:.5rem .6rem;border:1px solid #d6b665;border-radius:11px;background:#0a1b27f2;box-shadow:0 12px 34px #000b;backdrop-filter:blur(12px)}.compare-tray.hidden,.compare-overlay.hidden,.study-scrim.hidden{display:none}.compare-tray strong{color:#f4da91;font-size:.64rem;white-space:nowrap}.compare-slots{display:flex;flex:1;gap:.35rem;min-width:0}.compare-slot{display:flex;align-items:center;gap:.3rem;min-width:0;color:#cce4e5;font-size:.58rem}.compare-slot img{width:22px;height:31px;object-fit:cover;border-radius:3px}.compare-slot span{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.compare-remove{padding:.15rem!important;border:0!important;background:transparent!important;color:#ed9ea9!important;font-size:.9rem!important}.compare-open:disabled{opacity:.42;cursor:not-allowed}.compare-overlay{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:1rem;background:#020914c9;backdrop-filter:blur(5px)}.compare-modal{position:relative;width:min(960px,100%);max-height:calc(100vh - 2rem);overflow:auto;padding:1rem;border:1px solid #d5b768;border-radius:13px;background:#0a1a27;box-shadow:0 20px 70px #000d}.compare-modal h2{margin:.1rem 2.5rem .8rem 0;font:700 1.3rem Georgia,serif}.compare-close{position:absolute;right:.75rem;top:.72rem;width:28px;height:28px;padding:0;font-size:1.1rem}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}.compare-card{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:.65rem;padding:.6rem;border:1px solid #ffffff12;border-radius:9px;background:#0d2432}.compare-card img{width:100%;border-radius:7px;border:1px solid #d4b463}.compare-card h3{margin:.15rem 0;font:700 1rem Georgia,serif}.compare-card p{color:#bdd5d8;font-size:.62rem;line-height:1.45;white-space:pre-line}.compare-card .mechanic-list{margin:.35rem 0}.study-scrim{display:none}@media(max-width:760px){.study{display:none}.study.mobile-open{position:fixed;z-index:35;inset:5vh .55rem .55rem;display:block;max-height:none;margin:0;overflow:auto;border-color:#d6b665;box-shadow:0 20px 60px #000d}.study.mobile-open .mobile-close{display:block;position:sticky;z-index:2;float:right;top:.55rem;right:.55rem;border:1px solid #d4b463;border-radius:50%;background:#183240;color:#ffe6a0;width:31px;height:31px;font-size:1.15rem}.mobile-gesture-hint{display:block;clear:both;margin:0 0 .35rem;color:#88abb3;font-size:.51rem;text-align:center}.study-scrim{position:fixed;z-index:34;inset:0;background:#030b13c7;backdrop-filter:blur(3px)}.compare-tray{bottom:.55rem;width:calc(100vw - 1rem);padding:.42rem}.compare-tray strong{display:none}.compare-slot span{max-width:76px}.compare-grid{grid-template-columns:1fr}.compare-card{grid-template-columns:120px 1fr}.compare-modal{padding:.75rem}.compare-card p{font-size:.58rem}}
     </style>
+    <style>
+      /* Interacciones del visor de cartas en móvil: conserva el scroll vertical y hace claros los gestos. */
+      .mobile-gesture-bar { display: none; }
+      @media (max-width: 760px) {
+        .study.mobile-open {
+          --study-drag-x: 0px;
+          --study-drag-y: 0px;
+          transform: translate3d(var(--study-drag-x), var(--study-drag-y), 0);
+          opacity: 1;
+          overscroll-behavior: contain;
+          touch-action: pan-y;
+          will-change: transform, opacity;
+          transition: transform 280ms cubic-bezier(.22, .78, .2, 1), opacity 220ms ease, box-shadow 280ms ease;
+        }
+        .study.mobile-open.gesture-dragging { transition: none; user-select: none; }
+        .study.mobile-open.gesture-exit,
+        .study.mobile-open.gesture-closing { pointer-events: none; }
+        .study.mobile-open.gesture-opening { transform: translate3d(0, 26px, 0) scale(.985); opacity: 0; }
+        .study.mobile-open.gesture-enter-next { animation: learner-enter-from-right 240ms cubic-bezier(.22, .78, .2, 1); }
+        .study.mobile-open.gesture-enter-previous { animation: learner-enter-from-left 240ms cubic-bezier(.22, .78, .2, 1); }
+        .mobile-gesture-bar { display: flex; align-items: center; justify-content: center; height: 22px; margin: -.15rem 0 .12rem; touch-action: none; }
+        .mobile-gesture-bar span { width: 42px; height: 4px; border-radius: 999px; background: #7395a0; box-shadow: 0 1px 5px #0009; }
+        .mobile-gesture-hint { margin-bottom: .52rem; }
+        .study-scrim { opacity: 1; transition: opacity 220ms ease; }
+        .study-scrim.hidden { display: block; opacity: 0; pointer-events: none; }
+        @keyframes learner-enter-from-right { from { transform: translate3d(13%, 0, 0); opacity: 0; } to { transform: translate3d(0, 0, 0); opacity: 1; } }
+        @keyframes learner-enter-from-left { from { transform: translate3d(-13%, 0, 0); opacity: 0; } to { transform: translate3d(0, 0, 0); opacity: 1; } }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .study.mobile-open { transition-duration: 1ms !important; }
+        .study.mobile-open.gesture-enter-next,
+        .study.mobile-open.gesture-enter-previous { animation-duration: 1ms !important; }
+      }
+    </style>
   </head>
   <body>
     <header class="learner-header">
@@ -49,6 +83,6 @@
     <div id="compareOverlay" class="compare-overlay hidden" role="dialog" aria-modal="true" aria-label="Comparar cartas"><section id="compareModal" class="compare-modal"></section></div>
 
     <script src="data/piltoverarchive-cards.js"></script>
-    <script src="learner.js?v=20260730-translation-gestures"></script>
+    <script src="learner.js?v=20260731-smooth-mobile-gestures"></script>
   </body>
 </html>

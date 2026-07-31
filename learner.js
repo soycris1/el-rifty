@@ -54,6 +54,8 @@ let favoritesOnly = false;
 let compareCodes = [];
 const translationCache = new Map();
 let touchGesture = null;
+let gestureBusy = false;
+let closeTimer = null;
 
 function loadFavorites() {
   try { const stored = JSON.parse(globalThis.localStorage?.getItem(FAVORITES_KEY) || '[]'); return new Set(Array.isArray(stored) ? stored : []); }
@@ -62,8 +64,50 @@ function loadFavorites() {
 const favorites = loadFavorites();
 function saveFavorites() { try { globalThis.localStorage?.setItem(FAVORITES_KEY, JSON.stringify([...favorites])); } catch { /* El estudio sigue funcionando si el navegador bloquea almacenamiento local. */ } }
 function isMobileView() { return globalThis.matchMedia?.('(max-width: 760px)').matches || false; }
-function openMobileStudy() { if (!isMobileView()) return; $('#studyPanel').classList.add('mobile-open'); $('#studyScrim').classList.remove('hidden'); }
-function closeMobileStudy() { $('#studyPanel').classList.remove('mobile-open'); $('#studyScrim').classList.add('hidden'); }
+function clearStudyMotion(panel = $('#studyPanel')) {
+  panel.classList.remove('gesture-dragging', 'gesture-exit', 'gesture-closing', 'gesture-opening', 'gesture-enter-next', 'gesture-enter-previous');
+  panel.style.removeProperty('--study-drag-x');
+  panel.style.removeProperty('--study-drag-y');
+  panel.style.removeProperty('opacity');
+  $('#studyScrim').style.removeProperty('opacity');
+}
+function finishCloseMobileStudy() {
+  const panel = $('#studyPanel');
+  clearTimeout(closeTimer);
+  closeTimer = null;
+  clearStudyMotion(panel);
+  panel.classList.remove('mobile-open');
+  $('#studyScrim').classList.add('hidden');
+  gestureBusy = false;
+}
+function openMobileStudy() {
+  if (!isMobileView()) return;
+  const panel = $('#studyPanel');
+  const wasOpen = panel.classList.contains('mobile-open');
+  clearTimeout(closeTimer);
+  closeTimer = null;
+  clearStudyMotion(panel);
+  panel.classList.add('mobile-open');
+  $('#studyScrim').classList.remove('hidden');
+  if (!wasOpen) {
+    panel.classList.add('gesture-opening');
+    requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.remove('gesture-opening')));
+  }
+}
+function closeMobileStudy({ animate = true } = {}) {
+  const panel = $('#studyPanel');
+  if (!panel.classList.contains('mobile-open')) { finishCloseMobileStudy(); return; }
+  if (!animate || !isMobileView() || panel.classList.contains('gesture-closing')) { finishCloseMobileStudy(); return; }
+  touchGesture = null;
+  gestureBusy = true;
+  panel.classList.remove('gesture-dragging', 'gesture-exit');
+  panel.classList.add('gesture-closing');
+  panel.style.setProperty('--study-drag-x', '0px');
+  panel.style.setProperty('--study-drag-y', `${Math.max(panel.clientHeight, globalThis.innerHeight || 0) + 36}px`);
+  panel.style.opacity = '0';
+  $('#studyScrim').classList.add('hidden');
+  closeTimer = setTimeout(finishCloseMobileStudy, 260);
+}
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[char]);
@@ -213,7 +257,7 @@ function renderInspector() {
   const stats = [card.energy !== undefined ? `Energía ${card.energy}` : '', card.might ? `Might ${card.might}` : '', card.power ? `Power ${card.power}` : ''].filter(Boolean).join(' · ');
   const isFavorite = favorites.has(card.code);
   const inComparison = compareCodes.includes(card.code);
-  $('#learnerInspector').innerHTML = `<article class="study-card"><button class="mobile-close" data-close-study aria-label="Cerrar carta">×</button><p class="mobile-gesture-hint">Desliza ↓ para cerrar · ← / → para cambiar carta</p>${card.image ? `<img class="study-art" src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}">` : ''}<div><span class="study-code">${escapeHtml(card.collectionName)} · ${escapeHtml(card.code)}</span><h2>${escapeHtml(card.name)}</h2><p class="study-meta">${escapeHtml(card.type)}${card.domains.length ? ` · ${escapeHtml(card.domains.map(readable).join(' · '))}` : ''}${stats ? ` · ${escapeHtml(stats)}` : ''}</p><div class="study-actions"><button class="favorite ${isFavorite ? 'active' : ''}" data-toggle-favorite><span>♥</span> ${isFavorite ? 'Quitar favorita' : 'Favorita'}</button><button class="compare ${inComparison ? 'active' : ''}" data-toggle-compare>${inComparison ? '✓ En comparación' : '⇄ Comparar carta'}</button></div><div class="mechanic-list">${card.mechanics.length ? card.mechanics.map(mechanic => `<span class="mechanic-badge">${escapeHtml(readable(mechanic))}</span>`).join('') : '<span class="mechanic-badge">Texto de reglas</span>'}</div><p class="study-text">${formatCardRules(card.text || 'No hay texto de reglas disponible para esta impresión.')}</p><section class="translation"><h3>Traducción al español <small>automática · confirma el original</small></h3><p id="cardTranslationText" class="translation-text loading">Traduciendo esta carta…</p></section>${mechanicsGlossary(card)}</div><section class="synergy"><h3>Cartas que podrían jugarse con esta</h3><p>Son sugerencias de estudio por dominios, etiquetas y mecánicas compartidas; confirma siempre la interacción en el texto de ambas cartas.</p><div class="synergy-list">${related.length ? related.map(({ candidate, reasons }) => `<button class="synergy-card" data-learn-card="${escapeHtml(candidate.code)}">${candidate.image ? `<img src="${escapeHtml(candidate.image)}" alt="">` : '<span class="synergy-fallback">✦</span>'}<span><b>${escapeHtml(candidate.name)}</b><span>${escapeHtml(reasons.slice(0, 2).join(' · '))}</span></span></button>`).join('') : '<p class="source-note">Todavía no hay una coincidencia fuerte en el catálogo para esta carta. Prueba con su dominio o sus etiquetas.</p>'}</div><p class="source-note">Colección incluida de Piltover Archive. Las sugerencias no ejecutan ni inventan efectos.</p></section></article>`;
+  $('#learnerInspector').innerHTML = `<article class="study-card"><div class="mobile-gesture-bar" aria-hidden="true"><span></span></div><button class="mobile-close" data-close-study aria-label="Cerrar carta">×</button><p class="mobile-gesture-hint">Desliza ← / → para cambiar · baja desde la barra para cerrar</p>${card.image ? `<img class="study-art" src="${escapeHtml(card.image)}" alt="${escapeHtml(card.name)}">` : ''}<div><span class="study-code">${escapeHtml(card.collectionName)} · ${escapeHtml(card.code)}</span><h2>${escapeHtml(card.name)}</h2><p class="study-meta">${escapeHtml(card.type)}${card.domains.length ? ` · ${escapeHtml(card.domains.map(readable).join(' · '))}` : ''}${stats ? ` · ${escapeHtml(stats)}` : ''}</p><div class="study-actions"><button class="favorite ${isFavorite ? 'active' : ''}" data-toggle-favorite><span>♥</span> ${isFavorite ? 'Quitar favorita' : 'Favorita'}</button><button class="compare ${inComparison ? 'active' : ''}" data-toggle-compare>${inComparison ? '✓ En comparación' : '⇄ Comparar carta'}</button></div><div class="mechanic-list">${card.mechanics.length ? card.mechanics.map(mechanic => `<span class="mechanic-badge">${escapeHtml(readable(mechanic))}</span>`).join('') : '<span class="mechanic-badge">Texto de reglas</span>'}</div><p class="study-text">${formatCardRules(card.text || 'No hay texto de reglas disponible para esta impresión.')}</p><section class="translation"><h3>Traducción al español <small>automática · confirma el original</small></h3><p id="cardTranslationText" class="translation-text loading">Traduciendo esta carta…</p></section>${mechanicsGlossary(card)}</div><section class="synergy"><h3>Cartas que podrían jugarse con esta</h3><p>Son sugerencias de estudio por dominios, etiquetas y mecánicas compartidas; confirma siempre la interacción en el texto de ambas cartas.</p><div class="synergy-list">${related.length ? related.map(({ candidate, reasons }) => `<button class="synergy-card" data-learn-card="${escapeHtml(candidate.code)}">${candidate.image ? `<img src="${escapeHtml(candidate.image)}" alt="">` : '<span class="synergy-fallback">✦</span>'}<span><b>${escapeHtml(candidate.name)}</b><span>${escapeHtml(reasons.slice(0, 2).join(' · '))}</span></span></button>`).join('') : '<p class="source-note">Todavía no hay una coincidencia fuerte en el catálogo para esta carta. Prueba con su dominio o sus etiquetas.</p>'}</div><p class="source-note">Colección incluida de Piltover Archive. Las sugerencias no ejecutan ni inventan efectos.</p></section></article>`;
   translateCardText(card);
 }
 
@@ -260,6 +304,33 @@ function browseStudyCard(delta) {
   openMobileStudy();
 }
 
+function animateStudyCardChange(delta) {
+  const visibleCards = filterCards();
+  const panel = $('#studyPanel');
+  if (gestureBusy || visibleCards.length < 2) { clearStudyMotion(panel); return; }
+  const currentIndex = Math.max(0, visibleCards.findIndex(card => card.code === selectedCode));
+  const exitDirection = delta > 0 ? -1 : 1;
+  const exitDistance = Math.max(panel.clientWidth, 320) * exitDirection;
+  gestureBusy = true;
+  panel.classList.remove('gesture-dragging');
+  panel.classList.add('gesture-exit');
+  panel.getBoundingClientRect();
+  panel.style.setProperty('--study-drag-x', `${exitDistance}px`);
+  panel.style.setProperty('--study-drag-y', '0px');
+  panel.style.opacity = '0';
+  setTimeout(() => {
+    selectedCode = visibleCards[(currentIndex + delta + visibleCards.length) % visibleCards.length].code;
+    renderAll();
+    const enterClass = delta > 0 ? 'gesture-enter-next' : 'gesture-enter-previous';
+    clearStudyMotion(panel);
+    panel.classList.add(enterClass);
+    requestAnimationFrame(() => {
+      panel.classList.remove(enterClass);
+      setTimeout(() => { gestureBusy = false; }, 220);
+    });
+  }, 210);
+}
+
 function renderAll() {
   renderMechanicChips(); renderCatalog(); renderInspector(); renderCompareTray();
   $('#favoriteFilter').classList.toggle('active', favoritesOnly); $('#favoriteFilter').setAttribute('aria-pressed', String(favoritesOnly));
@@ -302,16 +373,63 @@ $('#favoriteFilter').addEventListener('click', () => { favoritesOnly = !favorite
 $('#studyScrim').addEventListener('click', closeMobileStudy);
 $('#compareOverlay').addEventListener('click', event => { if (event.target === $('#compareOverlay')) closeComparison(); });
 $('#studyPanel').addEventListener('pointerdown', event => {
-  if (!isMobileView() || event.pointerType === 'mouse' || event.target.closest('button, input, select, a')) return;
-  touchGesture = { id: event.pointerId, x: event.clientX, y: event.clientY };
+  if (!isMobileView() || gestureBusy || event.pointerType === 'mouse' || event.target.closest('button, input, select, a, textarea')) return;
+  const panel = $('#studyPanel');
+  touchGesture = {
+    id: event.pointerId,
+    x: event.clientX,
+    y: event.clientY,
+    axis: null,
+    controlling: false,
+    canClose: Boolean(event.target.closest('.mobile-gesture-bar')) || panel.scrollTop < 3,
+  };
+});
+$('#studyPanel').addEventListener('pointermove', event => {
+  if (!touchGesture || touchGesture.id !== event.pointerId || gestureBusy) return;
+  const panel = $('#studyPanel');
+  const deltaX = event.clientX - touchGesture.x;
+  const deltaY = event.clientY - touchGesture.y;
+  const distanceX = Math.abs(deltaX);
+  const distanceY = Math.abs(deltaY);
+  if (!touchGesture.axis) {
+    if (Math.max(distanceX, distanceY) < 12) return;
+    touchGesture.axis = distanceX > distanceY ? 'horizontal' : 'vertical';
+    if (touchGesture.axis === 'vertical' && (!touchGesture.canClose || deltaY <= 0)) { touchGesture = null; return; }
+    touchGesture.controlling = true;
+    try { panel.setPointerCapture(event.pointerId); } catch { /* Algunos navegadores móviles ya capturaron el puntero. */ }
+  }
+  if (touchGesture.axis === 'horizontal') {
+    if (event.cancelable) event.preventDefault();
+    const maxDrag = Math.max(120, panel.clientWidth * 0.58);
+    const softenedX = Math.sign(deltaX) * Math.min(Math.abs(deltaX) * 0.82, maxDrag);
+    panel.classList.add('gesture-dragging');
+    panel.style.setProperty('--study-drag-x', `${softenedX}px`);
+    panel.style.setProperty('--study-drag-y', '0px');
+    return;
+  }
+  if (event.cancelable) event.preventDefault();
+  const maxDrag = Math.max(150, panel.clientHeight * 0.62);
+  const softenedY = Math.min(deltaY * 0.82, maxDrag);
+  panel.classList.add('gesture-dragging');
+  panel.style.setProperty('--study-drag-x', '0px');
+  panel.style.setProperty('--study-drag-y', `${softenedY}px`);
+  $('#studyScrim').style.opacity = String(Math.max(0.28, 1 - softenedY / Math.max(1, panel.clientHeight * 0.8)));
 });
 $('#studyPanel').addEventListener('pointerup', event => {
   if (!touchGesture || touchGesture.id !== event.pointerId) return;
-  const deltaX = event.clientX - touchGesture.x; const deltaY = event.clientY - touchGesture.y;
+  const gesture = touchGesture;
+  const deltaX = event.clientX - gesture.x;
+  const deltaY = event.clientY - gesture.y;
   touchGesture = null;
-  if (deltaY > 110 && Math.abs(deltaY) > Math.abs(deltaX) * 1.25) { closeMobileStudy(); return; }
-  if (Math.abs(deltaX) > 72 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) browseStudyCard(deltaX < 0 ? 1 : -1);
+  const panel = $('#studyPanel');
+  if (gesture.controlling) { try { panel.releasePointerCapture(event.pointerId); } catch { /* El navegador puede soltarlo automáticamente. */ } }
+  if (!gesture.controlling) return;
+  const horizontalThreshold = Math.max(78, panel.clientWidth * 0.19);
+  const closeThreshold = Math.max(96, panel.clientHeight * 0.14);
+  if (gesture.axis === 'vertical' && deltaY >= closeThreshold) { closeMobileStudy(); return; }
+  if (gesture.axis === 'horizontal' && Math.abs(deltaX) >= horizontalThreshold) { animateStudyCardChange(deltaX < 0 ? 1 : -1); return; }
+  clearStudyMotion(panel);
 });
-$('#studyPanel').addEventListener('pointercancel', () => { touchGesture = null; });
+$('#studyPanel').addEventListener('pointercancel', () => { touchGesture = null; clearStudyMotion(); });
 
 loadCatalog();
