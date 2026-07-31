@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a1522" />
+    <title>El Rifty · Constructor de mazos</title>
+    <link rel="stylesheet" href="decklab.css" />
+    <style>
+      .catalog-card{position:relative;min-height:0;aspect-ratio:63/88;overflow:hidden;border:1px solid #2c4c58;border-radius:9px;background:#07141e}.catalog-select{position:absolute;inset:0;width:100%;border:0;background:#07141e;padding:0;text-align:left;color:inherit}.catalog-select>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1}.catalog-select:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#07141eef 0%,#07141e00 42%)}.catalog-select>*:not(img){position:absolute;z-index:1}.catalog-select .card-type{top:.38rem;left:.38rem}.catalog-select h3{left:.42rem;right:.42rem;bottom:1.45rem;margin:0;text-shadow:0 1px 4px #000;font-size:.69rem}.catalog-select small{left:.42rem;bottom:.42rem;color:#b7dadd;font-size:.52rem}.catalog-card.selected{border-color:#f2d477;box-shadow:0 0 0 1px #f2d477,0 4px 16px #0009}.catalog-select:focus-visible{outline:2px solid #8be2df;outline-offset:-3px}.card-quick-actions{position:absolute;z-index:2;right:.34rem;top:.34rem;display:flex;align-items:center;gap:.18rem;padding:.18rem;border:1px solid #ffffff36;border-radius:6px;background:#07141ed9;opacity:0;pointer-events:none;transform:translateY(-4px);transition:opacity .14s ease,transform .14s ease}.catalog-card:hover .card-quick-actions,.catalog-card:focus-within .card-quick-actions{opacity:1;pointer-events:auto;transform:translateY(0)}.card-quick-actions button{width:21px;height:21px;border:1px solid #7697a0;border-radius:4px;background:#14303e;color:#ecf4f3;font-weight:800;line-height:1}.card-quick-actions b{min-width:13px;text-align:center;color:#f3d78b;font-size:.63rem}.deck-description{display:grid;gap:.18rem;margin:.55rem 0 .2rem;color:#829ea8;font-size:.53rem;letter-spacing:.1em;text-transform:uppercase}.deck-description input{width:100%;border:1px solid #355563;border-radius:6px;background:#07141e;color:#e8f5f5;padding:.42rem .5rem;outline:none;font-size:.65rem;text-transform:none;letter-spacing:0}.deck-description input:focus{border-color:#92e0de;box-shadow:0 0 0 2px #7de1e423}.deck-library-modal{position:fixed;z-index:21;left:50%;top:50%;transform:translate(-50%,-50%);width:min(720px,calc(100% - 2rem));max-height:calc(100vh - 3rem);overflow:auto;padding:1.1rem;border:1px solid #617e88;border-radius:12px;background:#0b1c29;box-shadow:0 20px 80px #000d}.deck-library-modal h2{margin:.2rem 0 .8rem;font:700 1.35rem Georgia,serif}.deck-library-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:.55rem}.saved-deck{padding:.7rem;border:1px solid #ffffff14;border-radius:8px;background:#0e2533}.saved-deck h3{margin:0 0 .23rem;font:700 .95rem Georgia,serif}.saved-deck p{min-height:2.2em;margin:.25rem 0;color:#9db8bf;font-size:.61rem;line-height:1.35}.saved-deck small{display:block;color:#7897a0;font-size:.54rem}.saved-deck-actions{display:flex;gap:.35rem;margin-top:.55rem}.saved-deck-actions button{border:1px solid #42636d;border-radius:5px;background:#153141;padding:.3rem .42rem;color:#dceef0;font-size:.56rem;font-weight:750}.saved-deck-actions .delete{color:#f5a1a9;border-color:#87505a}.empty-library{grid-column:1/-1;padding:1.2rem;text-align:center;color:#78949d;font-size:.68rem}@media(max-width:700px){.card-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.deck-library-list{grid-template-columns:1fr}}
+    </style>
+    <style>
+      .catalog-mode{display:flex;gap:.35rem;margin:.72rem 0 .35rem}.catalog-mode button,.build-step,.study-type{border:1px solid #3c5c66;border-radius:7px;background:#0c202d;color:#bcdadd;padding:.36rem .5rem;font-size:.59rem;font-weight:800}.catalog-mode button[aria-selected="true"],.build-step.current{border-color:#d0ad61;background:#203b3d;color:#f5df9a}.catalog-guide{margin:.25rem 0 .6rem;padding:.5rem .58rem;border-left:2px solid #7cd9d8;background:#0a1b27;color:#a8c9cc;font-size:.62rem;line-height:1.4}.catalog-guide strong{color:#f0d888}.build-flow{margin:.68rem 0 .6rem;padding:.55rem;border:1px solid #ffffff14;border-radius:8px;background:#081924}.build-flow-title{margin:0 0 .42rem;color:#82d6d8;font-size:.55rem;font-weight:850;letter-spacing:.12em}.build-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.28rem}.build-step{min-height:42px;text-align:left;padding:.35rem}.build-step span{display:block;color:#89a9ae;font-size:.49rem;font-weight:650}.build-step.done{border-color:#5e9f99}.build-step:disabled{opacity:.38;cursor:not-allowed}.build-step b{font-size:.62rem}.card-peek{width:22px!important;height:22px!important;border-color:#d2b56c!important;background:#273645!important;color:#ffe8a1!important;font-size:.76rem!important}.card-preview{position:fixed;z-index:50;width:min(280px,calc(100vw - 1.25rem));padding:.45rem;border:1px solid #e4c66e;border-radius:10px;background:#07131ee8;box-shadow:0 18px 46px #000d;pointer-events:none;transition:opacity .12s ease,transform .12s ease}.card-preview.hidden{opacity:0;transform:scale(.96)}.card-preview img{display:block;width:100%;border-radius:6px}.card-preview .preview-empty{display:grid;min-height:280px;place-items:center;color:#c5dce0;text-align:center;font:.7rem/1.4 Inter,sans-serif}.card-preview p{margin:.35rem .08rem .05rem;color:#d9e9e9;font-size:.62rem;line-height:1.35}.study-actions{display:flex;flex-wrap:wrap;gap:.28rem;margin-top:.46rem}.study-type{font-size:.55rem}.study-note{margin:.52rem 0 0;padding:.48rem;border:1px solid #ffffff12;border-radius:6px;background:#0b1f2c;color:#aac8cb;font-size:.59rem;line-height:1.42}.study-note b{color:#f1d98f}.study-insight{margin:.45rem 0 0;padding:.45rem;border-left:2px solid #8bdedf;background:#0a1c28;color:#a8c7ca;font-size:.58rem;line-height:1.4}@media(max-width:700px){.build-steps{grid-template-columns:1fr 1fr}.card-preview{display:none}}
+    </style>
+  </head>
+  <body>
+    <header class="lab-header">
+      <a href="index.html" class="back-link">← Mesa</a>
+      <a href="decklab.html" class="brand">EL RIFTY <span>· DECK LAB</span></a>
+      <div class="header-actions">
+        <a href="learner.html" class="quiet-btn">Card Learner</a>
+        <button id="openLibrary" class="quiet-btn">Mis mazos</button>
+        <button id="saveDeck" class="quiet-btn">Guardar</button>
+        <button id="exportDeck" class="gold-btn">Exportar</button>
+      </div>
+    </header>
+
+    <main class="lab-shell">
+      <section class="collection-panel panel">
+        <div class="panel-title">
+          <div><span class="eyebrow">COLECCIÓN</span><h1>Cartas de Riftbound</h1></div>
+          <button id="reloadCatalog" class="reload-btn" title="Recargar colección">↻</button>
+        </div>
+        <div id="catalogGuide" class="catalog-guide" aria-live="polite"></div>
+        <div class="catalog-controls">
+          <label><span>Buscar</span><input id="cardSearch" type="search" placeholder="Nombre, código o texto…" autocomplete="off" /></label>
+          <label><span>Tipo</span><select id="typeFilter"><option value="">Todos los tipos</option><option>Legend</option><option>Unit</option><option>Spell</option><option>Gear</option><option>Battlefield</option><option>Rune</option></select></label>
+          <label><span>Dominio</span><select id="domainFilter"><option value="">Todos</option><option value="fury">Furia</option><option value="calm">Calma</option><option value="mind">Mente</option><option value="body">Cuerpo</option><option value="chaos">Caos</option><option value="order">Orden</option></select></label>
+        </div>
+        <p id="catalogStatus" class="catalog-status">Cargando colección incluida…</p>
+        <div id="cardGallery" class="card-gallery" aria-live="polite"></div>
+      </section>
+
+      <aside class="builder-panel panel">
+        <div class="builder-title"><div><span class="eyebrow">CONSTRUCTOR</span><input id="deckName" value="Mazo sin nombre" aria-label="Nombre del mazo" /><label class="deck-description"><span>Descripción</span><input id="deckDescription" maxlength="160" placeholder="Ej. Jinx de descarte para jugar con amigos" /></label></div><button id="clearDeck" class="danger-link">Vaciar</button></div>
+        <section id="buildFlow" class="build-flow" aria-label="Orden de construcción del mazo"></section>
+        <div id="validation" class="validation" aria-live="polite"></div>
+        <div class="deck-zones">
+          <section class="deck-zone"><div class="zone-header"><span>Leyenda</span><b id="legendCount">0/1</b></div><div id="legendList"></div></section>
+          <section class="deck-zone"><div class="zone-header"><span>Campeón elegido</span><b id="championCount">0/1</b></div><div id="championList"></div></section>
+          <section class="deck-zone"><div class="zone-header"><span>Escenarios</span><b id="battlefieldCount">0/3</b></div><div id="battlefieldList"></div></section>
+          <section class="deck-zone"><div class="zone-header"><span>Runas</span><b id="runeCount">0/12</b></div><div id="runeList"></div></section>
+          <section class="deck-zone"><div class="zone-header"><span>Mazo principal <small>incluye campeón</small></span><b id="mainCount">0/40+</b></div><div id="mainList"></div></section>
+          <section class="deck-zone sideboard-zone"><div class="zone-header"><span>Banquillo <small>opcional · torneo: 0 u 8</small></span><b id="sideboardCount">0</b></div><div id="sideboardList"></div></section>
+        </div>
+      </aside>
+
+      <section class="inspector-panel panel">
+        <div id="cardInspector" class="card-inspector"><div class="empty-inspector"><span>✦</span><h2>Elige una carta</h2><p>Revisa sus datos y añádela a la zona correcta de tu mazo.</p></div></div>
+        <section class="import-panel">
+          <span class="eyebrow">IMPORTAR DESDE PILTOVER ARCHIVE</span>
+          <p>Pega el código de mazo, el enlace del Deck Builder o una lista de texto con códigos (por ejemplo, <code>3 OGN-006</code>).</p>
+          <textarea id="importInput" rows="4" placeholder="Código o enlace de Piltover Archive…"></textarea>
+          <button id="importDeck" class="quiet-btn wide">Importar a El Rifty</button>
+          <p id="importStatus" class="import-status"></p>
+        </section>
+        <section class="rules-card">
+          <span class="eyebrow">CONSTRUIDO · 1 VS 1</span>
+          <ul>
+            <li>1 Leyenda de Campeón</li><li>1 Campeón elegido compatible</li><li>Mínimo 40 cartas de mazo principal, contando al campeón</li><li>En torneo construido: exactamente 40 y banquillo de 0 u 8</li><li>12 runas de los dominios de la leyenda</li><li>3 escenarios con nombres distintos</li><li>Máximo 3 copias (1 si es Única)</li><li>Máximo 3 cartas de firma del campeón de tu Leyenda</li>
+          </ul>
+          <p class="policy-note">Herramienta local e independiente. El Rifty isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Para publicar una herramienta con cartas digitales se requiere autorización y recursos de la API de Riot.</p>
+        </section>
+      </section>
+    </main>
+
+    <div id="exportModal" class="export-modal hidden" role="dialog" aria-modal="true" aria-labelledby="exportTitle">
+      <button id="closeExport" class="modal-close" aria-label="Cerrar">×</button>
+      <span class="eyebrow">COMPARTIR</span><h2 id="exportTitle">Exportar</h2>
+      <label class="export-label">Código compatible con Piltover Archive<textarea id="deckCodeOutput" rows="4" readonly></textarea></label>
+      <div class="export-actions"><button id="copyCode" class="gold-btn">Copiar código</button><button id="downloadDeck" class="quiet-btn">Descargar El Rifty JSON</button></div>
+      <p id="exportMessage" class="import-status"></p>
+      <p class="modal-note">El código no incluye la Leyenda; esta se conserva en el archivo de El Rifty y debe seleccionarse al importar un código externo.</p>
+    </div><div id="scrim" class="scrim hidden"></div>
+    <div id="cardPreview" class="card-preview hidden" aria-hidden="true"></div>
+    <div id="deckLibraryModal" class="deck-library-modal hidden" role="dialog" aria-modal="true" aria-labelledby="deckLibraryTitle">
+      <button id="closeLibrary" class="modal-close" aria-label="Cerrar">×</button>
+      <span class="eyebrow">BIBLIOTECA LOCAL</span><h2 id="deckLibraryTitle">Mis mazos</h2>
+      <div id="deckLibraryList" class="deck-library-list"></div>
+    </div>
+    <script src="data/piltoverarchive-cards.js"></script>
+    <script src="vendor/riftbound-deck-codes.js"></script>
+    <script src="decklab.js"></script>
+  </body>
+</html>

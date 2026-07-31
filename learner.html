@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#091522" />
+    <title>El Rifty · Card Learner</title>
+    <link rel="stylesheet" href="learner.css" />
+    <style>
+      .favorite-filter,.study-actions button,.compare-tray button,.compare-close{border:1px solid #52707a;border-radius:7px;background:#14313f;color:#dff2f1;padding:.38rem .48rem;font-size:.58rem;font-weight:800}.favorite-filter{width:100%;margin:.28rem 0 .25rem;text-align:left}.favorite-filter.active,.study-actions .favorite.active{border-color:#e27691;background:#43242d;color:#ffd7df}.favorite-filter .heart{color:#ff93a6;font-size:.85rem}.favorite-mark{position:absolute;z-index:2;right:.38rem;top:.35rem;color:#ff96a7;font-size:1rem;text-shadow:0 1px 4px #000}.study-actions{display:flex;flex-wrap:wrap;gap:.35rem;margin:.55rem 0}.study-actions .compare.active{border-color:#d9b960;background:#3a3520;color:#ffe8a6}.mobile-close{display:none}.compare-tray{position:fixed;z-index:20;bottom:1rem;left:50%;display:flex;align-items:center;gap:.5rem;width:min(720px,calc(100vw - 2rem));transform:translateX(-50%);padding:.5rem .6rem;border:1px solid #d6b665;border-radius:11px;background:#0a1b27f2;box-shadow:0 12px 34px #000b;backdrop-filter:blur(12px)}.compare-tray.hidden,.compare-overlay.hidden,.study-scrim.hidden{display:none}.compare-tray strong{color:#f4da91;font-size:.64rem;white-space:nowrap}.compare-slots{display:flex;flex:1;gap:.35rem;min-width:0}.compare-slot{display:flex;align-items:center;gap:.3rem;min-width:0;color:#cce4e5;font-size:.58rem}.compare-slot img{width:22px;height:31px;object-fit:cover;border-radius:3px}.compare-slot span{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.compare-remove{padding:.15rem!important;border:0!important;background:transparent!important;color:#ed9ea9!important;font-size:.9rem!important}.compare-open:disabled{opacity:.42;cursor:not-allowed}.compare-overlay{position:fixed;z-index:40;inset:0;display:grid;place-items:center;padding:1rem;background:#020914c9;backdrop-filter:blur(5px)}.compare-modal{position:relative;width:min(960px,100%);max-height:calc(100vh - 2rem);overflow:auto;padding:1rem;border:1px solid #d5b768;border-radius:13px;background:#0a1a27;box-shadow:0 20px 70px #000d}.compare-modal h2{margin:.1rem 2.5rem .8rem 0;font:700 1.3rem Georgia,serif}.compare-close{position:absolute;right:.75rem;top:.72rem;width:28px;height:28px;padding:0;font-size:1.1rem}.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}.compare-card{display:grid;grid-template-columns:minmax(150px,220px) 1fr;gap:.65rem;padding:.6rem;border:1px solid #ffffff12;border-radius:9px;background:#0d2432}.compare-card img{width:100%;border-radius:7px;border:1px solid #d4b463}.compare-card h3{margin:.15rem 0;font:700 1rem Georgia,serif}.compare-card p{color:#bdd5d8;font-size:.62rem;line-height:1.45;white-space:pre-line}.compare-card .mechanic-list{margin:.35rem 0}.study-scrim{display:none}@media(max-width:760px){.study{display:none}.study.mobile-open{position:fixed;z-index:35;inset:5vh .55rem .55rem;display:block;max-height:none;margin:0;overflow:auto;border-color:#d6b665;box-shadow:0 20px 60px #000d}.study.mobile-open .mobile-close{display:block;position:sticky;z-index:2;float:right;top:.55rem;right:.55rem;border:1px solid #d4b463;border-radius:50%;background:#183240;color:#ffe6a0;width:31px;height:31px;font-size:1.15rem}.study-scrim{position:fixed;z-index:34;inset:0;background:#030b13c7;backdrop-filter:blur(3px)}.compare-tray{bottom:.55rem;width:calc(100vw - 1rem);padding:.42rem}.compare-tray strong{display:none}.compare-slot span{max-width:76px}.compare-grid{grid-template-columns:1fr}.compare-card{grid-template-columns:120px 1fr}.compare-modal{padding:.75rem}.compare-card p{font-size:.58rem}}
+    </style>
+  </head>
+  <body>
+    <header class="learner-header">
+      <a class="brand" href="learner.html">EL RIFTY <span>· CARD LEARNER</span></a>
+      <nav><a href="decklab.html">Constructor de mazos</a><a href="index.html">Mesa</a></nav>
+    </header>
+
+    <main class="learner-shell">
+      <aside class="filters panel">
+        <span class="eyebrow">ESTUDIA A TU RITMO</span>
+        <h1>Card Learner</h1>
+        <p>Explora cartas grandes, aprende sus palabras clave y encuentra cartas con rasgos que combinan.</p>
+
+        <label class="control"><span>Buscar</span><input id="learnSearch" type="search" placeholder="Nombre, texto o etiqueta…" autocomplete="off" /></label>
+        <label class="control"><span>Colección</span><select id="collectionFilter"><option value="">Todas las colecciones</option></select></label>
+        <label class="control"><span>Tipo de carta</span><select id="learnType"><option value="">Todos los tipos</option><option>Legend</option><option>Unit</option><option>Spell</option><option>Gear</option><option>Battlefield</option><option>Rune</option></select></label>
+        <label class="control"><span>Dominio</span><select id="learnDomain"><option value="">Todos los dominios</option><option value="fury">Furia</option><option value="calm">Calma</option><option value="mind">Mente</option><option value="body">Cuerpo</option><option value="chaos">Caos</option><option value="order">Orden</option></select></label>
+
+        <section class="mechanics-filter" aria-labelledby="mechanicsTitle">
+          <div><span class="eyebrow" id="mechanicsTitle">MECÁNICAS</span><button id="clearFilters" class="clear-button">Limpiar</button></div>
+          <p>Elige una o más: se mostrarán cartas que tengan todas las elegidas.</p>
+          <div id="mechanicChips" class="mechanic-chips"></div>
+          <button id="favoriteFilter" class="favorite-filter" aria-pressed="false"><span class="heart">♥</span> Ver solo mis favoritas</button>
+        </section>
+      </aside>
+
+      <section class="catalog panel">
+        <div class="catalog-heading"><div><span class="eyebrow">BIBLIOTECA DE CARTAS</span><h2 id="catalogTitle">Todas las cartas</h2></div><p id="learnerStatus" aria-live="polite"></p></div>
+        <div id="learnerGallery" class="learner-gallery" aria-live="polite"></div>
+      </section>
+
+      <aside id="studyPanel" class="study panel" aria-live="polite">
+        <div id="learnerInspector" class="learner-inspector"><div class="study-empty"><span>✦</span><h2>Elige una carta</h2><p>Su texto, mecánicas y posibles sinergias aparecerán aquí.</p></div></div>
+      </aside>
+    </main>
+    <div id="studyScrim" class="study-scrim hidden"></div>
+    <div id="compareTray" class="compare-tray hidden" aria-live="polite"></div>
+    <div id="compareOverlay" class="compare-overlay hidden" role="dialog" aria-modal="true" aria-label="Comparar cartas"><section id="compareModal" class="compare-modal"></section></div>
+
+    <script src="data/piltoverarchive-cards.js"></script>
+    <script src="learner.js"></script>
+  </body>
+</html>

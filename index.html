@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d1724" />
+    <title>El Rifty · Mesa de práctica</title>
+    <link rel="preconnect" href="https://openrift.app" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .priority-readout{display:grid;gap:.08rem;min-width:155px;padding:.3rem .48rem;border:1px solid #41616d;border-radius:6px;background:#0d2230}.priority-readout b{font-size:.61rem;color:#f2dc91}.priority-readout small{font-size:.5rem;color:#9ab7bd;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.rune{overflow:hidden;background:#102033}.rune img{width:100%;height:100%;object-fit:cover}.rune:after{display:none}.deck-card.rune{background-position:center;background-size:cover}.deck-card.rune:before,.deck-card.rune:after{background:#06111a9e}.hand-card[draggable="true"]{cursor:grab}.hand-card.dragging{opacity:.42}.battlefield.drop-target{outline:3px solid #87e3dc;outline-offset:2px;filter:brightness(1.18)}.battlefield.in-showdown{border-color:#ffcf77;box-shadow:0 0 0 2px #e8bc6459,0 8px 25px #000a}.showdown-tools{display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-top:.35rem;color:#f3dd9b;font-size:.52rem}.showdown-tools button{border:1px solid #6b8790;border-radius:4px;background:#112c39;color:#eaf7f5;padding:.2rem .3rem;font-size:.5rem}.showdown-tools button[data-conquer="0"]{color:#9bd6ff}.showdown-tools button[data-conquer="1"]{color:#ffabb4}@media(max-width:720px){.priority-readout{display:none}}
+    </style>
+    <style>
+      .battlefield{min-height:156px}.battlefield>.battlefield-art{position:absolute;z-index:-1;inset:0;width:100%;height:100%;object-fit:cover;opacity:.36}.scenario-card{position:absolute;z-index:3;left:.55rem;top:.52rem;width:74px;filter:drop-shadow(0 4px 7px #000a)}.scenario-card span{display:block;margin:0 0 .18rem;color:#e8d58d;font-size:.4rem;font-weight:850;letter-spacing:.08em;white-space:nowrap}.scenario-card img{display:block;width:100%;aspect-ratio:.714;object-fit:cover;border:1px solid #e6cc7d;border-radius:4px}.battlefield-content{padding-left:5.7rem}.battlefield-bottom{gap:.3rem}.battlefield-note{max-width:42%}@media(max-width:720px){.battlefield{min-height:116px}.scenario-card{left:.35rem;top:.35rem;width:44px}.scenario-card span{font-size:.3rem}.battlefield-content{padding-left:3.5rem}.battlefield-top h3{font-size:.61rem}.battlefield-note{display:none}}
+    </style>
+    <style>
+      .playmat-layout{grid-template-columns:105px minmax(155px,.8fr) minmax(280px,2.3fr) minmax(280px,2.3fr) 104px 104px;grid-template-areas:"rune-deck runes staging staging legend champion" "rune-deck runes staging staging main-deck trash";gap:.55rem;min-height:248px}.playmat-layout .zone{min-height:112px}.rune-deck-zone{grid-area:rune-deck}.runes-zone{grid-area:runes}.staging-zone{grid-area:staging;display:flex;flex-direction:column;border-color:#d4bb7352;background:linear-gradient(135deg,#0a2733,#0c3440)}.legend-holder{grid-area:legend}.champion-holder{grid-area:champion}.main-deck-zone{grid-area:main-deck}.trash-zone{grid-area:trash;display:flex;align-items:center;justify-content:center;padding-top:1rem}.staging-cards{display:flex;flex:1;align-items:center;justify-content:center;flex-wrap:wrap;gap:.38rem;padding:1.45rem .6rem .5rem}.staging-cards .unit-mini{width:78px;aspect-ratio:.714}.staging-cards .zone-empty{max-width:240px;line-height:1.35}.staging-zone.drop-target{outline:3px solid #87e3dc;outline-offset:2px;filter:brightness(1.18)}.playmat-layout.team-red{border-color:#fc6c7b44}.playmat-layout.team-blue{border-color:#5aabff44}.playmat-layout .legend-zone,.playmat-layout .champion-zone{height:100%;padding-top:1rem}.playmat-layout .legend-zone img,.playmat-layout .champion-zone img{width:72px}.playmat-layout .main-deck-zone .deck-card,.playmat-layout .rune-deck-zone .deck-card{top:54%}@media(max-width:720px){.playmat-layout{grid-template-columns:.75fr 1fr 1.75fr;grid-template-areas:"rune-deck runes staging" "main-deck trash staging" "legend champion staging";gap:.35rem;min-height:236px}.playmat-layout .zone{min-height:72px}.playmat-layout .legend-holder,.playmat-layout .champion-holder{display:block}.playmat-layout .legend-zone img,.playmat-layout .champion-zone img{width:48px}.staging-cards{padding:1.15rem .25rem .2rem;gap:.22rem}.staging-cards .unit-mini{width:43px}.staging-zone .zone-label{font-size:.42rem}.rune-deck-zone .deck-card,.main-deck-zone .deck-card{transform:translate(-50%,-42%) scale(.68)}}
+    </style>
+    <style>
+      .battle-units{min-height:80px;align-items:center;flex-wrap:wrap;justify-content:flex-end;padding:.15rem}.battle-units .unit-mini{width:68px;aspect-ratio:.714;margin:0!important;transform:rotate(calc(var(--manual-rotation,0deg) + var(--tapped-rotation,0deg)));transform-origin:center;transition:transform .16s ease,box-shadow .16s ease;cursor:grab}.battle-units .unit-mini:active{cursor:grabbing}.unit-mini.selected-board{outline:2px solid #f5d477;outline-offset:2px;box-shadow:0 0 0 4px #f5d4773d,0 6px 15px #000c}.unit-mini.card-hidden{background:#0a1628;border-color:#87c8d2}.unit-mini .card-back{font-size:1.4rem;background:radial-gradient(circle,#436f84,#142b46 54%,#080e1c)}.unit-mini .board-card-badge{position:absolute;z-index:2;top:2px;left:2px;border-radius:3px;padding:1px 3px;background:#07111cd9;color:#e8dba9;font-size:.45rem}.unit-mini.dragging{opacity:.45}.action-buttons{align-items:center}@media(max-width:720px){.battle-units{min-height:58px}.battle-units .unit-mini{width:43px}.unit-mini .board-card-badge{font-size:.35rem}}
+    </style>
+    <style>
+      .game-screen{padding-bottom:1rem}.opponent-area{transform:none}.game-screen.face-to-face .opponent-area{transform:rotate(180deg)}.orientation-btn{border:1px solid rgba(132,218,232,.42);background:rgba(8,46,61,.82);color:#ecfbff;border-radius:8px;padding:.42rem .62rem;font:700 .69rem/1.1 "Space Grotesk",sans-serif;letter-spacing:.05em;text-transform:uppercase;cursor:pointer}.orientation-btn:hover{border-color:#9eeaff;background:rgba(20,82,99,.9)}.turn-banner{width:min(1120px,96%);margin:.75rem auto .5rem;padding:.7rem .9rem;border:1px solid #54717c;border-radius:12px;background:linear-gradient(100deg,#0e2b39,#132134);box-shadow:0 8px 25px #0007}.turn-banner.blue{border-color:#5aabff;background:linear-gradient(100deg,#102d47,#142234)}.turn-banner.red{border-color:#fc6c7b;background:linear-gradient(100deg,#481d31,#201526)}.turn-banner-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}.turn-banner .turn-kicker{display:block;color:#b3ccd2;font-size:.56rem;font-weight:800;letter-spacing:.16em}.turn-banner strong{display:block;margin:.12rem 0;font:700 clamp(1.1rem,2.2vw,1.7rem) Georgia,serif;letter-spacing:.05em}.turn-banner p{margin:.14rem 0 0;color:#d5e6e6;font-size:.67rem}.turn-banner .handoff{max-width:330px;padding:.4rem .55rem;border:1px solid #ffffff22;border-radius:7px;background:#07131eb8;color:#e9d490;font-size:.59rem;line-height:1.35}.phase-track{display:flex;gap:.3rem;margin-top:.62rem}.phase-track span{flex:1;padding:.28rem .2rem;border:1px solid #ffffff13;border-radius:5px;color:#7897a0;text-align:center;font-size:.52rem;font-weight:750}.phase-track span.active{border-color:#f0d489;background:#f0d489;color:#31260d}.action-dock{position:sticky;z-index:9;top:58px;left:auto;bottom:auto;transform:none;width:min(1120px,96%);margin:0 auto .7rem;padding:.65rem .75rem;border:1px solid #6b8791;border-radius:12px;background:#091a28f5;box-shadow:0 8px 26px #000a}.action-message{font-size:.72rem;color:#d4e9e9}.action-buttons{gap:.45rem}.dock-btn{min-height:35px;padding:.5rem .68rem;border-color:#5d7d87;background:#173445;font-size:.66rem}.dock-btn.primary-small{background:linear-gradient(120deg,#e8c674,#fff2b5);color:#35240b;border:0}.dock-btn:disabled{opacity:.5}@media(max-width:720px){.orientation-btn{font-size:0;width:30px;height:30px;padding:0;display:grid;place-items:center}.orientation-btn:after{content:'↻';font-size:1rem}.turn-banner{width:100%;margin:.4rem auto;padding:.55rem .6rem}.turn-banner-row{align-items:flex-start;gap:.45rem}.turn-banner strong{font-size:1rem}.turn-banner .handoff{max-width:145px;font-size:.51rem}.phase-track{gap:.18rem}.phase-track span{font-size:.46rem}.action-dock{position:sticky;top:54px;width:100%;margin:0 auto .45rem}.action-message{font-size:.61rem}.action-buttons{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.28rem}.dock-btn{min-height:32px;padding:.35rem;font-size:.54rem}}
+    </style>
+    <style>
+      .rift-lane{width:min(600px,94%);margin:.35rem auto}.rift-heading{margin-bottom:.22rem}.battlefield-row{grid-template-columns:minmax(300px,480px);justify-content:center}.battlefield{min-height:112px}.scenario-card{left:.4rem;top:.38rem;width:58px}.scenario-card span{font-size:.34rem}.battlefield-content{min-height:112px;padding:.42rem .48rem .42rem 4.5rem}.battlefield-top h3{font-size:.76rem}.battlefield-note{font-size:.49rem;max-width:35%}.battle-units{min-height:54px}.battle-units .unit-mini{width:56px}.playmat-layout{min-height:194px}.playmat-layout .zone{min-height:88px}.staging-cards{padding:1.22rem .45rem .4rem}.staging-cards .unit-mini{width:64px}.turn-order-picker{display:flex;align-items:center;gap:.28rem;flex-wrap:wrap;padding:.42rem .52rem;border:1px solid #ffffff18;border-radius:8px;background:#071721;color:#aac5c9;font-size:.55rem;font-weight:800;letter-spacing:.07em}.turn-order-picker button{border:1px solid #426671;border-radius:5px;background:#163343;color:#d9f1f1;padding:.27rem .42rem;font-size:.56rem;font-weight:800}.turn-order-picker button.active{border-color:#ecd17f;background:#f0d887;color:#35290e}.turn-order-picker small{flex-basis:100%;color:#79959d;font-size:.48rem;font-weight:600;letter-spacing:0}@media(max-width:720px){.rift-lane{width:100%;margin:.24rem auto}.battlefield-row{grid-template-columns:minmax(0,1fr)}.battlefield{min-height:96px}.scenario-card{width:39px}.battlefield-content{min-height:96px;padding-left:3.1rem}.battle-units{min-height:46px}.battle-units .unit-mini{width:38px}.playmat-layout{min-height:204px}.playmat-layout .zone{min-height:64px}.staging-cards .unit-mini{width:40px}.turn-order-picker{width:100%;justify-content:center}}
+    </style>
+  </head>
+  <body>
+    <main id="app">
+      <section id="setupScreen" class="setup-screen" aria-labelledby="setupTitle">
+        <div class="aurora aurora-one"></div>
+        <div class="aurora aurora-two"></div>
+        <div class="setup-wrap">
+          <header class="brand-lockup">
+            <a class="deck-lab-link" href="decklab.html">EL RIFTY · MAZOS Y CARTAS ↗</a>
+            <span class="eyebrow">MESA LOCAL · 1 VS 1</span>
+            <h1 id="setupTitle">RIFTBOUND</h1>
+            <p>Prepara una partida y entra al Rift.</p>
+          </header>
+
+          <div class="setup-progress" aria-label="Progreso de preparación">
+            <span class="progress-dot active">1</span><span>Elegir leyendas</span>
+            <i></i>
+            <span class="progress-dot">2</span><span>Escenarios</span>
+            <i></i>
+            <span class="progress-dot">3</span><span>Comenzar</span>
+          </div>
+
+          <section class="draft-grid">
+            <article class="draft-player" data-player="0">
+              <div class="player-heading"><span class="seat">P1</span><h2>Invocador azul</h2></div>
+              <p class="section-kicker">LEYENDA Y CAMPEÓN</p>
+              <div class="legend-options" id="legendOptions0"></div>
+              <div class="selection-summary" id="selectionSummary0"></div>
+              <div class="battlefield-picker" id="battlefieldPicker0"></div>
+            </article>
+
+            <div class="versus" aria-hidden="true"><span>VS</span></div>
+
+            <article class="draft-player opponent-draft" data-player="1">
+              <div class="player-heading"><span class="seat red">P2</span><h2>Invocador rojo</h2></div>
+              <p class="section-kicker">LEYENDA Y CAMPEÓN</p>
+              <div class="legend-options" id="legendOptions1"></div>
+              <div class="selection-summary" id="selectionSummary1"></div>
+              <div class="battlefield-picker" id="battlefieldPicker1"></div>
+            </article>
+          </section>
+
+          <footer class="setup-footer">
+            <div class="rules-note">Mazos de práctica: 40 cartas con campeón · 12 runas · 3 escenarios únicos</div>
+            <div class="turn-order-picker" aria-label="Elegir quién juega primero"><span>VA PRIMERO</span><button data-first-player="0" class="active">Azul</button><button data-first-player="1">Rojo</button><small>El otro aporta el escenario y canaliza 3 runas en su primer turno.</small></div>
+            <button id="startGame" class="primary-btn">Preparar la partida <span>→</span></button>
+          </footer>
+        </div>
+      </section>
+
+      <section id="gameScreen" class="game-screen hidden" aria-label="Mesa de Riftbound">
+        <header class="game-topbar">
+          <button id="backToSetup" class="icon-btn" title="Volver a preparación" aria-label="Volver a preparación">‹</button>
+          <div class="turn-readout">
+            <span id="turnPip" class="turn-pip"></span>
+            <div><b id="turnPlayer">Invocador azul</b><small id="turnLabel">Turno 1 · Fase inicial</small></div>
+          </div>
+          <div id="priorityReadout" class="priority-readout" aria-live="polite"></div>
+          <div class="scoreboard" aria-label="Marcador">
+            <div class="score blue"><strong id="score0">0</strong><span>puntos</span></div>
+            <span class="score-divider">—</span>
+            <div class="score red"><strong id="score1">0</strong><span>puntos</span></div>
+          </div>
+          <button id="toggleTableOrientation" class="orientation-btn" title="Alternar vista cara a cara">Vista cara a cara</button>
+          <a href="decklab.html" class="deck-link-small">Mis mazos</a>
+          <button id="rulesButton" class="rules-btn">Reglas rápidas</button>
+        </header>
+
+        <section id="turnBanner" class="turn-banner" aria-live="polite"></section>
+
+        <aside id="actionDock" class="action-dock" aria-live="polite">
+          <div class="action-message" id="actionMessage">Sigue la fase indicada.</div>
+          <div class="action-buttons">
+            <button id="channelRunes" class="dock-btn rune-action">Canalizar 2 runas</button>
+            <button id="playCard" class="dock-btn" disabled>Jugar carta</button>
+            <button id="passPriority" class="dock-btn" disabled>Pasar prioridad</button>
+            <button id="resolveShowdown" class="dock-btn showdown" disabled>Resolver confrontación</button>
+            <button id="tapCard" class="dock-btn" disabled>Agotar 90°</button>
+            <button id="flipCard" class="dock-btn" disabled>Voltear (Z)</button>
+            <button id="rotateCard" class="dock-btn" disabled>Girar 180° (I)</button>
+            <button id="discardCard" class="dock-btn" disabled>Mandar a desechos</button>
+            <button id="nextTurn" class="dock-btn primary-small">Siguiente turno →</button>
+          </div>
+        </aside>
+
+        <section class="opponent-area player-mat" id="mat1" aria-label="Mesa del jugador rojo"></section>
+
+        <section class="rift-lane" aria-label="Escenarios en disputa">
+          <div class="rift-heading"><span></span><b>EL RIFT</b><span></span></div>
+          <div id="battlefieldRow" class="battlefield-row"></div>
+        </section>
+
+        <section class="player-area player-mat" id="mat0" aria-label="Tu mesa"></section>
+
+        <div id="cardModal" class="card-modal hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+          <button id="closeModal" class="close-modal" aria-label="Cerrar">×</button>
+          <div id="modalContents"></div>
+        </div>
+        <div id="rulesModal" class="rules-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rulesTitle">
+          <button id="closeRules" class="close-modal" aria-label="Cerrar">×</button>
+          <h2 id="rulesTitle">Reglas rápidas de esta mesa</h2>
+          <ol>
+            <li>La mesa muestra fase, jugador activo, prioridad y la cadena. El jugador rojo no se mueve solo: la persona que lo controla toma el dispositivo cuando recibe prioridad.</li>
+            <li>Mesa libre: arrastra una unidad al escenario; arrastra una carta ya jugada para cambiarla de escenario. Clic en una carta jugada la agota/endereza; clic derecho la selecciona para usar las acciones de Voltear, Girar o Desechos. Z voltea e I gira la carta seleccionada.</li>
+            <li>El turno sigue Despertar → Inicio → Canalización → Robo → Principal → Final. En Despertar se enderezan tus objetos; en Inicio puntúas los escenarios controlados; canalizas 2 runas (3 si vas segundo en tu primera canalización) y robas 1, salvo que el primer jugador omite ese primer robo.</li>
+            <li>Las unidades entran agotadas a tu Base. En fase principal, una unidad lista puede moverse de tu Base a un escenario, se agota como coste y abre una confrontación.</li>
+            <li>Al anunciar un hechizo, entra en la cadena y se abre la ventana de respuesta. Dos pases seguidos permiten resolverlo manualmente según el texto.</li>
+            <li>Mover al escenario abre una confrontación abierta o de combate. La mesa registra el resultado que determinen los jugadores; no inventa combate ni efectos de cartas.</li>
+            <li>Controlar un escenario al inicio de tu turno anota 1 punto. Gana quien llega a 8.</li>
+          </ol>
+          <p class="modal-note">Mesa de práctica local: la secuencia, prioridad, mulligan y zonas se rastrean aquí; los costes, respuestas y efectos de cada carta se confirman entre jugadores con el texto impreso. Construye y valida un mazo reglamentario en “Mis mazos”.</p>
+        </div>
+        <div id="mulliganModal" class="mulligan-modal hidden" role="dialog" aria-modal="true" aria-labelledby="mulliganTitle">
+          <span class="eyebrow">PREPARACIÓN DE PARTIDA</span>
+          <h2 id="mulliganTitle">Mulligan inicial</h2>
+          <p id="mulliganText">Elige hasta dos cartas para reemplazar.</p>
+          <div id="mulliganHand" class="mulligan-hand"></div>
+          <div class="mulligan-actions">
+            <button id="confirmMulligan" class="dock-btn">Conservar mano</button>
+            <button id="replaceMulligan" class="primary-small">Reemplazar 0 cartas</button>
+          </div>
+          <p class="modal-note">Regla oficial: cada jugador roba 4 y, en orden de turno, puede apartar hasta 2; roba la misma cantidad y después las recicla al fondo de su mazo principal.</p>
+        </div>
+        <div id="scrim" class="scrim hidden"></div>
+      </section>
+    </main>
+    <script src="data/piltoverarchive-cards.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
