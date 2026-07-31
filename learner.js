@@ -373,7 +373,7 @@ $('#favoriteFilter').addEventListener('click', () => { favoritesOnly = !favorite
 $('#studyScrim').addEventListener('click', closeMobileStudy);
 $('#compareOverlay').addEventListener('click', event => { if (event.target === $('#compareOverlay')) closeComparison(); });
 $('#studyPanel').addEventListener('pointerdown', event => {
-  if (!isMobileView() || gestureBusy || event.pointerType === 'mouse' || event.target.closest('button, input, select, a, textarea')) return;
+  if (!isMobileView() || gestureBusy || (event.pointerType === 'mouse' && event.button !== 0) || event.target.closest('button, input, select, a, textarea')) return;
   const panel = $('#studyPanel');
   touchGesture = {
     id: event.pointerId,
