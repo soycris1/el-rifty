@@ -27,6 +27,7 @@
       color: var(--ink);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
+    body.preview-open { overflow: hidden; }
     main {
       position: relative;
       width: min(1180px, calc(100% - 28px));
@@ -46,6 +47,24 @@
       box-shadow: 0 .8rem 2rem rgba(0,0,0,.28);
       padding: .8rem;
     }
+    .module-menu-toggle {
+      display: none;
+      width: 100%;
+      align-items: center;
+      justify-content: space-between;
+      gap: .65rem;
+      border: 1px solid rgba(241,201,111,.58);
+      border-radius: .5rem;
+      background: rgba(241,201,111,.1);
+      color: var(--ink);
+      padding: .65rem .72rem;
+      font: inherit;
+      font-size: .88rem;
+      text-align: left;
+      cursor: pointer;
+    }
+    .module-menu-toggle strong { color: var(--gold); font-weight: 600; }
+    .module-menu-toggle-icon { color: var(--gold); font-size: 1.2rem; line-height: 1; }
     .module-menu .eyebrow {
       margin: 0 0 .2rem;
       color: var(--cyan);
@@ -55,7 +74,7 @@
       text-transform: uppercase;
     }
     .module-menu h2 { margin: 0; font-size: 1rem; font-weight: 500; }
-    .module-menu > p:last-of-type { margin: .32rem 0 .75rem; color: var(--muted); font-size: .77rem; line-height: 1.35; }
+    .module-menu-panel > p:last-of-type { margin: .32rem 0 .75rem; color: var(--muted); font-size: .77rem; line-height: 1.35; }
     .module-list { display: grid; gap: .28rem; margin: 0; padding: 0; list-style: none; }
     .module-list span,
     .module-list a {
@@ -137,7 +156,7 @@
     .term:focus-visible { color: var(--cyan); outline: none; }
     .term-popover {
       position: absolute;
-      z-index: 100;
+      z-index: 620;
       display: none;
       width: min(310px, calc(100% - 28px));
       border: 1px solid var(--gold);
@@ -512,6 +531,7 @@
     }
     .reading-label.function::before { content: "🧭 "; }
     .reading-label.translation::before { content: "🗣️ "; }
+    .reading-label.case::before { content: "🧪 "; }
     .speed-module {
       margin-top: 34px;
       border-top: 1px solid var(--line);
@@ -674,7 +694,11 @@
       line-height: 1.38;
     }
     .keyword-card-slot {
-      min-height: 100px;
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: stretch;
+      gap: .72rem;
+      min-height: 130px;
       margin-top: .56rem;
     }
     .keyword-card-slot .rb-card {
@@ -683,6 +707,26 @@
       aspect-ratio: .714;
     }
     .keyword-card-slot .rb-card span { font-size: clamp(.51rem, .72vw, .64rem); }
+    .keyword-use-case {
+      min-width: 0;
+      border-left: 2px solid rgba(241,201,111,.55);
+      border-radius: .34rem;
+      background: rgba(241,201,111,.055);
+      padding: .58rem .64rem;
+      color: var(--muted);
+      font-size: .78rem;
+      line-height: 1.45;
+    }
+    .keyword-use-case b {
+      display: block;
+      margin-bottom: .28rem;
+      color: var(--gold);
+      font-size: .74rem;
+      font-weight: 600;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .keyword-use-case p { margin: 0; }
     .keyword-examples-label {
       margin: .82rem 0 .42rem;
       color: var(--muted);
@@ -833,6 +877,25 @@
       .module-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
     @media (max-width: 780px) {
+      .module-menu {
+        position: sticky;
+        top: 8px;
+        z-index: 450;
+        width: min(100% - 20px, 760px);
+        margin: 8px auto 0;
+        padding: .48rem;
+      }
+      .module-menu-toggle { display: flex; }
+      .module-menu-panel {
+        display: none;
+        max-height: calc(100vh - 82px);
+        margin-top: .5rem;
+        overflow: auto;
+        overscroll-behavior: contain;
+        padding: .25rem;
+      }
+      .module-menu.is-open .module-menu-panel { display: block; }
+      .module-list { grid-template-columns: 1fr; }
       main { width: min(100% - 20px, 760px); padding-top: 20px; }
       .hand-row { grid-template-columns: 1fr 1fr; }
       .rival-trash-zone { grid-column: 1 / -1; }
@@ -856,7 +919,9 @@
       .table-layout > .outside-zone { display: block; }
       .playmat { box-shadow: none; }
       .mat-callout { max-width: 39%; }
-      .module-list { grid-template-columns: 1fr; }
+      .keyword-card-slot { grid-template-columns: 86px minmax(0, 1fr); gap: .58rem; }
+      .keyword-card-slot .rb-card { width: 86px; }
+      .keyword-use-case { padding: .5rem .55rem; font-size: .74rem; }
       .controls { left: 10px; justify-content: space-between; }
       .rb-card:hover,
       .rb-card:focus-visible,
@@ -948,16 +1013,43 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,.52);
+      background: rgba(0,0,0,.72);
       padding: 16px;
       pointer-events: none;
     }
     .card-preview.is-visible { display: flex; }
+    .card-preview.is-pinned { pointer-events: auto; }
+    .card-preview-dialog {
+      position: relative;
+      display: grid;
+      grid-template-columns: auto minmax(260px, 390px);
+      gap: 1rem;
+      align-items: center;
+      max-width: min(96vw, 1040px);
+      max-height: calc(100vh - 32px);
+      border: 1px solid rgba(241,201,111,.58);
+      border-radius: .72rem;
+      background: #11151d;
+      box-shadow: 0 1rem 3rem rgba(0,0,0,.88);
+      padding: .86rem;
+      overflow: auto;
+      overscroll-behavior: contain;
+      transition: transform .18s ease;
+    }
+    .card-preview:not(.is-pinned) .card-preview-dialog {
+      display: block;
+      max-width: 92vw;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+      padding: 0;
+      overflow: visible;
+    }
     .card-preview figure {
       display: grid;
       justify-items: center;
       gap: .45rem;
-      max-width: 92vw;
+      max-width: min(92vw, 560px);
       margin: 0;
     }
     .card-preview img {
@@ -978,29 +1070,108 @@
       line-height: 1.35;
       text-align: center;
     }
+    .card-preview-close {
+      position: absolute;
+      z-index: 3;
+      top: .48rem;
+      right: .48rem;
+      display: grid;
+      width: 2.55rem;
+      height: 2.55rem;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.42);
+      border-radius: 999px;
+      background: rgba(7,9,13,.9);
+      color: #fff;
+      font: 700 1.38rem/1 system-ui, sans-serif;
+      cursor: pointer;
+    }
+    .card-preview-close:hover,
+    .card-preview-close:focus-visible { border-color: var(--gold); outline: 2px solid rgba(241,201,111,.3); }
+    .card-preview-details {
+      min-width: 0;
+      padding: .35rem .2rem .35rem 0;
+      color: var(--muted);
+      font-size: .84rem;
+      line-height: 1.5;
+    }
+    .card-preview-details h2 { margin: 0 2.8rem .68rem 0; color: var(--ink); font-size: 1.08rem; }
+    .preview-label {
+      display: block;
+      margin: .72rem 0 .18rem;
+      color: var(--gold);
+      font-size: .72rem;
+      font-weight: 650;
+      letter-spacing: .045em;
+      text-transform: uppercase;
+    }
+    .card-preview-details p { margin: 0; }
+    .card-preview:not(.is-pinned) .card-preview-close,
+    .card-preview:not(.is-pinned) .card-preview-details,
+    .card-preview:not(.is-pinned) .card-preview-swipe-hint { display: none; }
+    .card-preview-swipe-hint {
+      grid-column: 1 / -1;
+      margin: -.25rem 0 0;
+      color: var(--muted);
+      font-size: .72rem;
+      text-align: center;
+    }
+    @media (max-width: 780px) {
+      .card-preview { padding: 8px; }
+      .card-preview-dialog {
+        grid-template-columns: 1fr;
+        align-items: start;
+        width: min(100%, 560px);
+        max-height: calc(100dvh - 16px);
+        padding: .62rem;
+      }
+      .card-preview figure { max-width: 100%; }
+      .card-preview img { max-width: 100%; max-height: 72dvh; }
+      .card-preview figcaption { max-width: 100%; }
+      .card-preview-close { position: fixed; top: 16px; right: 16px; }
+      .card-preview-details { padding: 0 .25rem .35rem; }
+      .card-preview-swipe-hint { position: sticky; bottom: 0; border-radius: .35rem; background: rgba(17,21,29,.94); padding: .35rem; }
+    }
   </style>
 </head>
 <body>
   <nav class="module-menu" aria-label="Módulos de RB for Dummies">
-    <p class="eyebrow">RB for Dummies</p>
-    <h2>Ruta para aprender</h2>
-    <p>Cada módulo abre su propia página. Sólo los módulos con ↗ ya se pueden abrir.</p>
-    <ol class="module-list">
-      <li><span>1 · 🧭 Preparación y objetivo<small>Próximamente</small></span></li>
-      <li><span>2 · 🗺️ Mesa, zonas y tipos de carta<small>Próximamente</small></span></li>
-      <li><span>3 · 💎 Runes, Energy, Power y exhaust<small>Próximamente</small></span></li>
-      <li><span>4 · ↩️ Tu turno, acciones básicas y mover<small>Próximamente</small></span></li>
-      <li><span>5 · ⚔️ Showdown, Focus y combate<small>Próximamente</small></span></li>
-      <li class="is-current"><a href="?module=chain" data-module-link data-module="chain" aria-current="page"><strong>6 · 🔗 Ejemplo de Chain</strong><small>↗ Abrir módulo</small></a></li>
-      <li><a href="?module=alternative" data-module-link data-module="alternative"><strong>7 · 🪃 Chain alternativa</strong><small>↗ Abrir módulo</small></a></li>
-      <li><a href="?module=speed" data-module-link data-module="speed"><strong>8 · ⏱️ Qué es velocidad</strong><small>↗ Abrir módulo</small></a></li>
-      <li><a href="?module=keywords" data-module-link data-module="keywords"><strong>9 · ✳️ Palabras clave</strong><small>↗ Abrir módulo</small></a></li>
-      <li><span>10 · 🎯 Práctica guiada<small>Próximamente</small></span></li>
-    </ol>
+    <button class="module-menu-toggle" id="module-menu-toggle" type="button" aria-expanded="false" aria-controls="module-menu-panel">
+      <strong>☰ Ruta para aprender</strong><span class="module-menu-toggle-icon" aria-hidden="true">⌄</span>
+    </button>
+    <div class="module-menu-panel" id="module-menu-panel">
+      <p class="eyebrow">RB for Dummies</p>
+      <h2>Ruta para aprender</h2>
+      <p>Cada módulo abre su propia página. Sólo los módulos con ↗ ya se pueden abrir.</p>
+      <ol class="module-list">
+        <li><span>1 · 🧭 Preparación y objetivo<small>Próximamente</small></span></li>
+        <li><span>2 · 🗺️ Mesa, zonas y tipos de carta<small>Próximamente</small></span></li>
+        <li><span>3 · 💎 Runes, Energy, Power y exhaust<small>Próximamente</small></span></li>
+        <li><span>4 · ↩️ Tu turno, acciones básicas y mover<small>Próximamente</small></span></li>
+        <li><span>5 · ⚔️ Showdown, Focus y combate<small>Próximamente</small></span></li>
+        <li class="is-current"><a href="?module=chain" data-module-link data-module="chain" aria-current="page"><strong>6 · 🔗 Ejemplo de Chain</strong><small>↗ Abrir módulo</small></a></li>
+        <li><a href="?module=alternative" data-module-link data-module="alternative"><strong>7 · 🪃 Chain alternativa</strong><small>↗ Abrir módulo</small></a></li>
+        <li><a href="?module=speed" data-module-link data-module="speed"><strong>8 · ⏱️ Qué es velocidad</strong><small>↗ Abrir módulo</small></a></li>
+        <li><a href="?module=keywords" data-module-link data-module="keywords"><strong>9 · ✳️ Palabras clave</strong><small>↗ Abrir módulo</small></a></li>
+        <li><span>10 · 🎯 Práctica guiada<small>Próximamente</small></span></li>
+      </ol>
+    </div>
   </nav>
   <main id="riftbound-complete-table">
     <div id="term-popover" class="term-popover" role="tooltip"></div>
-    <div id="card-preview" class="card-preview" aria-live="polite"><figure><img id="card-preview-image" alt=""><figcaption id="card-preview-caption"></figcaption></figure></div>
+    <div id="card-preview" class="card-preview" aria-hidden="true" aria-live="polite">
+      <div class="card-preview-dialog" id="card-preview-dialog" role="dialog" aria-modal="true" aria-labelledby="card-preview-title">
+        <button class="card-preview-close" id="card-preview-close" type="button" aria-label="Cerrar carta ampliada">×</button>
+        <figure><img id="card-preview-image" alt=""><figcaption id="card-preview-caption"></figcaption></figure>
+        <section class="card-preview-details">
+          <h2 id="card-preview-title"></h2>
+          <span class="preview-label">🧭 Qué hace aquí</span><p id="card-preview-function"></p>
+          <span class="preview-label">🌐 Traducción precisa</span><p id="card-preview-translation"></p>
+          <span class="preview-label preview-case-label">🧪 Caso hipotético</span><p id="card-preview-case"></p>
+        </section>
+        <p class="card-preview-swipe-hint">↓ En celular: desliza hacia abajo o toca × para cerrar</p>
+      </div>
+    </div>
     <section class="chain-module" id="modulo-chain" aria-labelledby="chain-title">
     <h1 id="chain-title">Módulo 6: Action, Reaction y Chain</h1>
     <p class="intro">Ve los pasos en orden. Las cartas importantes se mueven, las runas muestran el pago y la mesa conserva las demás piezas para que nunca pierdas el contexto.</p>
@@ -1113,23 +1284,23 @@
     <section class="keywords-module" id="modulo-palabras-clave" aria-labelledby="keywords-title">
       <p class="module-kicker">Módulo 9 · ✳️ Acciones de juego y palabras clave</p>
       <h2 id="keywords-title">El diccionario útil: qué hace cada palabra en una carta</h2>
-      <p class="keywords-intro">No necesitas memorizarlo de golpe: una <b>palabra clave</b> es sólo una forma corta de escribir una regla. Aquí van en el orden del manual: primero las acciones de juego que pediste; después las keywords desde <b>Accelerate</b> hasta <b>Ambush</b>. <b>Cada concepto tiene una carta real justo debajo</b>; pasa el mouse sobre un nombre o una carta para ver una explicación aún más corta y la traducción.</p>
-      <p class="keywords-order">📚 <b>Orden respetado:</b> acciones de juego §§91, 94, 102 y 103; luego keywords §§146, 148–153, 155–161 y 163. <b>Action</b> y <b>Reaction</b> están explicadas en los módulos 6 y 8, por eso no las repetimos como una keyword nueva aquí.</p>
+      <p class="keywords-intro">No necesitas memorizarlo de golpe: una <b>palabra clave</b> es sólo una forma corta de escribir una regla. Aquí van en el orden del manual: primero las acciones de juego que pediste; después las keywords desde <b>Accelerate</b> hasta <b>Ambush</b>. <b>Cada concepto tiene una carta real y un caso hipotético</b>. Toca una carta para ampliarla y separar claramente su función, su traducción y el ejemplo.</p>
+      <p class="keywords-order">📚 <b>Orden del reglamento:</b> primero las acciones de juego; después las palabras clave de Units y combate, y al final las de Gear y sets posteriores. <b>Action</b> y <b>Reaction</b> se explican paso a paso en los módulos 6 y 8.</p>
 
       <section class="keyword-section" aria-labelledby="game-actions-title">
         <h3 id="game-actions-title">🧩 Antes de las keywords: acciones de juego</h3>
         <p>Estas son instrucciones que un efecto puede hacer. No son “velocidades” ni cartas por sí mismas.</p>
         <dl class="keyword-definitions">
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="stun">💫 Stun / aturdir</button></dt><dd>La unit se queda donde está, pero este turno no hace daño de combate.<div class="keyword-card-slot" id="keyword-card-stun"></div></dd></div>
-          <div class="keyword-definition"><dt><button class="term" type="button" data-term="buff">📈 Buff</button></dt><dd>Le pone a una unit que no ya tenga uno un buff de +1 Might.<div class="keyword-card-slot" id="keyword-card-buff"></div></dd></div>
+          <div class="keyword-definition"><dt><button class="term" type="button" data-term="buff">📈 Buff</button></dt><dd>Si una Unit aún no tiene buff, le coloca un marcador de +1 Might; una Unit sólo puede tener uno.<div class="keyword-card-slot" id="keyword-card-buff"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="attach">🧷 Attach / adjuntar</button></dt><dd>Une cartas en mesa, por ejemplo un Equipment a una unit.<div class="keyword-card-slot" id="keyword-card-attach"></div></dd></div>
-          <div class="keyword-definition"><dt><button class="term" type="button" data-term="detach">✂️ Detach / despegar</button></dt><dd>Deshace ese vínculo. No puedes hacerlo libremente: una regla o efecto debe indicarlo.<div class="keyword-card-slot" id="keyword-card-detach"></div></dd></div>
+          <div class="keyword-definition"><dt><button class="term" type="button" data-term="detach">✂️ Detach / separar</button></dt><dd>Deshace ese vínculo. No puedes hacerlo libremente: una regla o efecto debe indicarlo.<div class="keyword-card-slot" id="keyword-card-detach"></div></dd></div>
         </dl>
       </section>
 
       <section class="keyword-section" aria-labelledby="early-keywords-title">
-        <h3 id="early-keywords-title">⚔️ Keywords §§146, 148–153</h3>
-        <p>Estas son las primeras que aparecen en esa parte del manual; van exactamente en ese orden.</p>
+        <h3 id="early-keywords-title">⚔️ Units, combate y movimiento</h3>
+        <p>Estas palabras modifican cómo entra, ataca, muere, se protege o se mueve una Unit.</p>
         <dl class="keyword-definitions">
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="accelerate">🏃 Accelerate</button></dt><dd>Pagas el coste adicional marcado y esa unit entra ready.<div class="keyword-card-slot" id="keyword-card-accelerate"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="assault">⚔️ Assault X</button></dt><dd>Mientras ataca, tiene +X Might.<div class="keyword-card-slot" id="keyword-card-assault"></div></dd></div>
@@ -1142,13 +1313,13 @@
       </section>
 
       <section class="keyword-section" aria-labelledby="later-keywords-title">
-        <h3 id="later-keywords-title">🛡️ Keywords §§155–161</h3>
-        <p>Tras Reaction, el manual sigue con defensa, duración, información y Equipment.</p>
+        <h3 id="later-keywords-title">🛡️ Defensa, duración, información y Equipment</h3>
+        <p>El reglamento continúa con protección, cartas temporales, mirar el mazo y usar Gear.</p>
         <dl class="keyword-definitions">
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="shield">🛡️ Shield X</button></dt><dd>Mientras defiende, tiene +X Might.<div class="keyword-card-slot" id="keyword-card-shield"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="tank">🧱 Tank</button></dt><dd>En daño de combate, debe recibir daño letal antes que tus otras units sin Tank.<div class="keyword-card-slot" id="keyword-card-tank"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="temporary">⏳ Temporary</button></dt><dd>Al inicio de tu siguiente Beginning Phase, antes de puntuar, se mata.<div class="keyword-card-slot" id="keyword-card-temporary"></div></dd></div>
-          <div class="keyword-definition"><dt><button class="term" type="button" data-term="vision">🔎 Vision</button></dt><dd>Cuando juegas la carta, hace Predict.<div class="keyword-card-slot" id="keyword-card-vision"></div></dd></div>
+          <div class="keyword-definition"><dt><button class="term" type="button" data-term="vision">🔎 Vision</button></dt><dd>Cuando juegas la carta, mira la carta superior de tu Main Deck y puedes reciclarla.<div class="keyword-card-slot" id="keyword-card-vision"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="equip">🛠️ Equip</button></dt><dd>Pagas el coste impreso para adjuntar ese Gear a una unit que controlas.<div class="keyword-card-slot" id="keyword-card-equip"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="quickDraw">⚡ Quick-Draw</button></dt><dd>Ese Equipment se puede jugar como Reaction y se adjunta al jugarse.<div class="keyword-card-slot" id="keyword-card-quickDraw"></div></dd></div>
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="repeat">🔁 Repeat</button></dt><dd>Puedes pagar un coste extra para ejecutar las instrucciones una vez adicional cuando resuelva.<div class="keyword-card-slot" id="keyword-card-repeat"></div></dd></div>
@@ -1156,7 +1327,7 @@
       </section>
 
       <section class="keyword-section" aria-labelledby="ambush-title">
-        <h3 id="ambush-title">🎯 Keyword §163: Ambush</h3>
+        <h3 id="ambush-title">🎯 Ambush: entrada sorpresa</h3>
         <dl class="keyword-definitions">
           <div class="keyword-definition"><dt><button class="term" type="button" data-term="ambush">🎯 Ambush</button></dt><dd>Si la juegas a un Battlefield donde ya controlas una unit, esa unit gana permiso de Reaction para entrar de sorpresa.<div class="keyword-card-slot" id="keyword-card-ambush"></div></dd></div>
         </dl>
@@ -1164,7 +1335,7 @@
       </section>
     </section>
 
-    <p class="card-reading" id="card-reading">Pasa el mouse sobre una carta para ver su vista ampliada, qué función cumple aquí y la traducción de su texto. Haz clic para dejarla fija; pulsa Escape para cerrarla.</p>
+    <p class="card-reading" id="card-reading">En computadora pasa el mouse; en celular toca una carta. La vista fija incluye función, traducción y ejemplo. Ciérrala con ×, Escape o deslizando hacia abajo.</p>
 
     <div class="controls">
       <button type="button" id="back">← Anterior</button>
@@ -1250,7 +1421,8 @@
       const fallbackImage = {
         runePrison: referenceCard("Rune Prison", "SPELL · ACTION", "2", ["[ACTION] Stun a unit.", "(It doesn't deal combat damage", "this turn.)"], "#285b70"),
         discipline: referenceCard("Discipline", "SPELL · REACTION", "2", ["[REACTION] Give a unit +2", "Might this turn. Draw 1."], "#4f416e"),
-        defy: referenceCard("Defy", "SPELL · REACTION", "1", ["[REACTION] Counter a spell", "that costs no more than 4 Energy", "and 1 Power."], "#4f416e")
+        defy: referenceCard("Defy", "SPELL · REACTION", "1", ["[REACTION] Counter a spell", "that costs no more than 4 Energy", "and 1 Power."], "#4f416e"),
+        zephyrSage: referenceCard("Zephyr Sage", "UNIT · CALM", "6", ["[SHIELD]", "(+1 Might while I'm a defender.)"], "#3b6f6b")
       };
       Object.assign(image, {
         karma: "https://static.dotgg.gg/riftbound/cards/OGN-235.webp",
@@ -1269,7 +1441,8 @@
         allay: "https://static.dotgg.gg/riftbound/cards/UNL-041.webp",
         yasuoWindrider: "https://static.dotgg.gg/riftbound/cards/OGN-205.webp",
         zhonyas: "https://static.dotgg.gg/riftbound/cards/OGN-077.webp",
-        alphaWildclaw: "https://static.dotgg.gg/riftbound/cards/UNL-057.webp"
+        alphaWildclaw: "https://static.dotgg.gg/riftbound/cards/UNL-057.webp",
+        zephyrSage: "https://cdn.piltoverarchive.com/cards/OGS-005.webp"
       });
       const glossary = {
         action: { icon: "⚡", title: "Action", text: "Un permiso de timing: la juegas durante tu turno, o durante un Showdown si tienes Focus y la Chain está vacía." },
@@ -1285,12 +1458,12 @@
         recycle: { icon: "♻️", title: "Recycle / reciclar", text: "Pon la carta de inmediato al fondo del deck correspondiente: una Rune al Runes Deck y una carta de Main Deck al Main Deck." },
         predict: { icon: "🔎", title: "Predict", text: "Mira la cantidad indicada de cartas en la parte superior de tu Main Deck. Puedes reciclar las que quieras y dejar las demás arriba en el orden que elijas." },
         accelerate: { icon: "🏃", title: "Accelerate", text: "Al jugar esa Unit puedes pagar el coste adicional indicado. Si lo haces, entra ready en vez de exhausted." },
-        hidden: { icon: "🫥", title: "Hidden", text: "En tu turno y con el juego abierto, paga 1 Power de cualquier Rune para esconder la carta boca abajo en un Battlefield que controles. Desde tu siguiente turno la puedes jugar como Reaction por 0, respetando sus restricciones." },
+        hidden: { icon: "🫥", title: "Hidden", text: "En tu turno y con el juego abierto, paga 1 Power genérico reciclando cualquier Rune para esconder la carta boca abajo en un Battlefield que controles. Desde tu siguiente turno puedes jugarla desde ahí como Reaction por 0, respetando sus restricciones." },
         counter: { icon: "⛔", title: "Counter / contrarrestar", text: "Saca un spell o ability de la Chain. No se resuelve ni hace su efecto." },
         stun: { icon: "💫", title: "Stun / aturdir", text: "La unit sigue en su lugar, pero no hace daño de combate durante este turno. No significa que muera ni que salga del Battlefield." },
         buff: { icon: "📈", title: "Buff", text: "Da a una Unit un buff de +1 Might si aún no tiene uno. Es distinto de un +X Might temporal escrito en un spell." },
         attach: { icon: "🧷", title: "Attach / adjuntar", text: "Vincula cartas que están en mesa. La carta adjunta se coloca debajo de la de arriba; sus habilidades y su bono de Might pasan a la carta de arriba mientras siga adjunta." },
-        detach: { icon: "✂️", title: "Detach / despegar", text: "Rompe el vínculo entre cartas que estaban adjuntas. No es una acción que puedas hacer porque sí: hace falta que una regla o un efecto indique que se desprende." },
+        detach: { icon: "✂️", title: "Detach / separar", text: "Rompe el vínculo entre cartas que estaban adjuntas. No es una acción que puedas hacer porque sí: hace falta que una regla o un efecto indique que se separan." },
         discard: { icon: "🗑️", title: "Discard / descartar", text: "Mueve la cantidad indicada de cartas desde tu mano a tu Trash." },
         trash: { icon: "🗑️", title: "Trash", text: "La pila de descarte de cada jugador. Un spell que se resuelve suele terminar en el Trash de quien lo jugó." },
         exhaust: { icon: "↩️", title: "Exhausted", text: "La carta se gira de lado para mostrar que se usó o que pagó un coste. Normalmente vuelve a ready en tu Awaken." },
@@ -1304,7 +1477,7 @@
         shield: { icon: "🛡️", title: "Shield", text: "Una bonificación de Might que sólo funciona mientras la Unit es defensora. Shield 2 significa +2 Might al defender." },
         tank: { icon: "🧱", title: "Tank", text: "En el paso de daño de combate, esta Unit debe recibir daño letal antes que tus otras Units que no tengan Tank." },
         temporary: { icon: "⏳", title: "Temporary", text: "Al inicio de la próxima Beginning Phase de su controlador, antes de puntuar, este permanente se mata." },
-        vision: { icon: "🔎", title: "Vision", text: "Cuando juegas esa carta, hace Predict. Es decir: mira las cartas superiores que indique Predict y decide cuáles reciclar." },
+        vision: { icon: "🔎", title: "Vision", text: "Cuando juegas esa carta, mira la carta superior de tu Main Deck. Puedes reciclarla. Se parece a Predict 1, pero el texto actualizado de Vision dice esto directamente." },
         equip: { icon: "🛠️", title: "Equip", text: "Habilidad activada de un Gear: paga el coste de Equip y adjunta ese Gear a una Unit que controlas." },
         quickDraw: { icon: "⚡", title: "Quick-Draw", text: "El Equipment tiene permiso de Reaction; al jugarlo, se adjunta a una Unit que controlas. Así puede entrar desde la mano como respuesta." },
         repeat: { icon: "🔁", title: "Repeat", text: "Puedes pagar el coste extra al jugar la carta. Si lo haces, sus instrucciones se ejecutan una vez adicional al resolver; no crea una segunda carta en la Chain." },
@@ -1327,91 +1500,91 @@
         jinx: {
           name: "Jinx, Demolitionist — Unit",
           text: "Es tu unit atacante de 4 " + t("might") + ". Aquí se ve " + t("exhaust", "exhausted") + " después de usar el movimiento estándar.",
-          translation: "<b>Coste:</b> 3 " + t("energy", "Energy") + " + 1 Fury " + t("power", "Power") + "; 4 " + t("might", "Might") + ".<br><b>" + t("accelerate", "Accelerate") + ":</b> puedes pagar 1 Energy y 1 Fury Power adicionales para que entre " + t("ready", "ready") + ".<br><b>" + t("assault", "Assault") + " 2:</b> +2 Might mientras sea atacante.<br><b>When you play me, " + t("discard", "discard") + " 2:</b> cuando la juegues, descarta 2 cartas de tu mano."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("accelerate", "Accelerate") + ":</b> puedes pagar 1 Energy y 1 Fury Power como coste adicional para que entre " + t("ready", "ready") + ".<br><b>" + t("assault", "Assault") + " 2:</b> +2 Might mientras sea atacante.<br>Cuando me juegas, " + t("discard", "descarta") + " 2 cartas."
         },
         fight: {
           name: "Fight or Flight — Spell",
           text: "Es la " + t("action", "Action") + " que abre la Chain. Cuesta 2 " + t("energy", "Energy") + " y pretende sacar a Annie del Battlefield.",
-          translation: "<b>" + t("hidden", "Hidden") + ":</b> escóndela ahora pagando 1 " + t("power", "Power") + " de cualquier " + t("rune", "Rune") + ", para jugarla después como " + t("reaction", "Reaction") + " por 0.<br><b>" + t("action", "Action") + ":</b> juégala en tu turno o durante un " + t("showdown", "Showdown") + ".<br><b>Move a unit from a " + t("battlefield", "battlefield") + " to its " + t("base", "base") + ":</b> mueve una unit de un Battlefield a su Base."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("hidden", "Hidden") + ":</b> ocúltala ahora pagando 1 Power genérico para reaccionar con ella después por 0.<br><b>" + t("action", "Action") + ":</b> juégala en tu turno o durante un " + t("showdown", "Showdown") + ".<br>Mueve una Unit desde un " + t("battlefield", "Battlefield") + " a su " + t("base", "Base") + "."
         },
         losses: {
           name: "Acceptable Losses — Spell",
           text: "Es la " + t("action", "Action") + " que abre esta Chain alternativa. En este escenario nunca llega a hacer su efecto porque termina contrarrestada.",
-          translation: "<b>" + t("action", "Action") + ":</b> juégala en tu turno o durante un " + t("showdown", "Showdown") + ".<br><b>Each player kills one of their gear:</b> cada jugador mata uno de sus Gear. Ojo: aquí el texto no se aplica, porque Abandon la contrarresta antes de que " + t("resolve", "resuelva") + "."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("action", "Action") + ":</b> juégala en tu turno o durante " + t("showdown", "Showdowns") + ".<br>Cada jugador mata uno de sus Gear."
         },
         abandon: {
           name: "Abandon — Spell",
           text: "Es la " + t("reaction", "Reaction") + " del rival; se coloca sobre Fight or Flight y la contrarresta antes de que pueda hacer su efecto.",
-          translation: "<b>" + t("reaction", "Reaction") + ":</b> juega en cualquier momento, incluso antes de que se resuelvan spells y abilities.<br><b>" + t("counter", "Counter") + " a " + t("spell", "spell") + ":</b> contrarresta un Spell.<br><b>Return it to its owner's hand instead of putting it in their " + t("trash", "trash") + ":</b> devuélvelo a la mano de su dueño, en vez de mandarlo al Trash.<br><b>" + t("predict", "Predict") + ":</b> mira la carta superior de tu Main Deck; puedes " + t("recycle", "reciclarla") + "."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("reaction", "Reaction") + ":</b> juégala en cualquier momento, incluso antes de que se resuelvan Spells y abilities.<br>" + t("counter", "Contrarresta") + " un " + t("spell", "Spell") + ". Devuélvelo a la mano de su propietario en vez de ponerlo en su " + t("trash", "Trash") + ".<br><b>" + t("predict", "Predict") + ":</b> mira la carta superior de tu Main Deck; puedes " + t("recycle", "reciclarla") + "."
         },
         runePrison: {
           name: "Rune Prison — Spell",
           text: "Es la " + t("action", "Action") + " que abre esta Chain. Su objetivo es aturdir a Jinx antes del combate.",
-          translation: "<b>" + t("action", "Action") + ":</b> juégala en tu turno o durante un " + t("showdown", "Showdown") + ".<br><b>" + t("stun", "Stun") + " a unit:</b> aturde una unit. Una unit aturdida no inflige daño de combate este turno."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("action", "Action") + ":</b> juégala en tu turno o durante " + t("showdown", "Showdowns") + ".<br>" + t("stun", "Aturde") + " una Unit. No inflige daño de combate este turno."
         },
         discipline: {
           name: "Discipline — Spell",
           text: "Es la primera " + t("reaction", "Reaction") + " de B: intenta subir la fuerza de Jinx y además robar una carta.",
-          translation: "<b>" + t("reaction", "Reaction") + ":</b> puedes jugarla incluso antes de que se resuelvan spells o abilities.<br><b>Give a unit +2 " + t("might", "Might") + " this turn:</b> da +2 Might a una unit este turno.<br><b>" + t("draw", "Draw") + " 1:</b> roba 1 carta."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("reaction", "Reaction") + ":</b> juégala en cualquier momento, incluso antes de que se resuelvan Spells y abilities.<br>Da +2 " + t("might", "Might") + " a una Unit este turno. " + t("draw", "Roba") + " 1 carta."
         },
         defy: {
           name: "Defy — Spell",
           text: "Es la respuesta de A a Discipline. No devuelve cartas a la mano: simplemente contrarresta el spell si su coste entra en el límite.",
-          translation: "<b>" + t("reaction", "Reaction") + ":</b> puedes jugarla incluso antes de que se resuelvan spells o abilities.<br><b>" + t("counter", "Counter") + " a spell that costs no more than 4 Energy and 1 Power:</b> contrarresta un Spell que cueste como máximo 4 Energy y 1 Power. Discipline cumple ambos límites."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("reaction", "Reaction") + ":</b> juégala en cualquier momento, incluso antes de que se resuelvan Spells y abilities.<br>" + t("counter", "Contrarresta") + " un Spell que no cueste más de 4 Energy ni más de 1 Power."
         },
         odds: {
           name: "Against the Odds — Spell",
           text: "Es una Reaction de fuerza variable: da +2 Might por cada unit enemiga presente en ese Battlefield. Aquí hay dos, así que Jinx recibe +4.",
-          translation: "<b>" + t("reaction", "Reaction") + ":</b> puedes jugarla incluso antes de que se resuelvan spells o abilities.<br><b>Give a friendly unit at a battlefield +2 " + t("might", "Might") + " this turn for each enemy unit there:</b> da a una unit aliada en un Battlefield +2 Might este turno por cada unit enemiga allí."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("reaction", "Reaction") + ":</b> juégala en cualquier momento, incluso antes de que se resuelvan Spells y abilities.<br>Da a una Unit aliada en un Battlefield +2 " + t("might", "Might") + " este turno por cada Unit enemiga allí."
         }
       };
       Object.assign(information, {
         battlefield: {
           name: "Altar to Unity — Battlefield",
           text: "Es el escenario que se disputa. Jinx y Annie están aquí durante el Combat Showdown.",
-          translation: "<b>When you " + t("hold", "hold") + " here:</b> cuando mantengas (Hold) este Battlefield, juega en tu " + t("base", "Base") + " un token " + t("recruit", "Recruit") + " de 1 " + t("might", "Might") + "."
+          translation: "<b>Texto de reglas:</b><br>Cuando hagas " + t("hold", "Hold") + " aquí, juega en tu " + t("base", "Base") + " un token de Unit " + t("recruit", "Recruit") + " de 1 " + t("might", "Might") + "."
         },
         legend: {
           name: "Jinx, Loose Cannon — Legend",
           text: "Es tu Legend: define los dominios del mazo y permanece en su zona. No entra a la Chain en este ejemplo.",
-          translation: "<b>At start of your " + t("beginning", "Beginning Phase") + ", " + t("draw", "draw") + " 1 if you have one or fewer cards in your hand:</b> al inicio de tu Beginning Phase, roba 1 carta si tienes una o menos cartas en tu mano."
+          translation: "<b>Texto de reglas:</b><br>Al inicio de tu " + t("beginning", "Beginning Phase") + ", " + t("draw", "roba") + " 1 carta si tienes una carta o menos en la mano."
         },
         champion: {
           name: "Jinx, Demolitionist — Champion Unit",
           text: "Es el Champion Unit elegido de tu Legend. Se muestra en la zona Champion para ubicarlo visualmente; no se mueve durante esta secuencia.",
-          translation: "<b>Texto de la carta:</b> " + t("accelerate", "Accelerate") + ": paga 1 " + t("energy", "Energy") + " y 1 Fury " + t("power", "Power") + " extra para que entre " + t("ready", "ready") + ". " + t("assault", "Assault") + " 2: +2 " + t("might", "Might") + " mientras sea atacante. Cuando la juegues, " + t("discard", "descarta") + " 2 cartas de tu mano."
+          translation: "<b>Texto de reglas:</b><br>" + t("accelerate", "Accelerate") + ": puedes pagar 1 Energy y 1 Fury Power como coste adicional para que entre " + t("ready", "ready") + ".<br>" + t("assault", "Assault") + " 2: +2 " + t("might", "Might") + " mientras sea atacante.<br>Cuando me juegas, " + t("discard", "descarta") + " 2 cartas."
         },
         annie: {
           name: "Annie, Fiery — Unit rival",
           text: "Es la unit rival en Altar to Unity. Su presencia junto a Jinx deja el Battlefield disputado.",
-          translation: "<b>Your " + t("spell", "spells") + " and " + t("ability", "abilities") + " deal 1 " + t("bonusDamage", "Bonus Damage") + ":</b> tus Spells y abilities infligen 1 de daño adicional. Cada instancia de daño que inflijan aumenta en 1."
+          translation: "<b>Texto de reglas:</b><br>Tus " + t("spell", "Spells") + " y " + t("ability", "abilities") + " infligen 1 de " + t("bonusDamage", "Bonus Damage") + ". Cada instancia de daño que infligen aumenta en 1."
         },
         rune: {
           name: "Body Rune — Rune",
           text: "Las dos que se giran pagan los 2 Energy de Fight or Flight. Permanecen en Runes, exhausted.",
-          translation: "<b>Body " + t("rune", "Rune") + ":</b> Runa básica del dominio Body. No tiene una línea de efecto propia: las reglas le permiten pagar 1 " + t("energy", "Energy") + " al " + t("exhaust", "exhaustarla") + " o 1 Body " + t("power", "Power") + " al " + t("recycle", "reciclarla") + " al fondo del Runes Deck."
+          translation: "<b>Sin texto impreso.</b><br>Por las reglas, una Body " + t("rune", "Rune") + " paga 1 " + t("energy", "Energy") + " al " + t("exhaust", "exhaustarse") + " o 1 Body " + t("power", "Power") + " al " + t("recycle", "reciclarse") + " al fondo del Runes Deck."
         }
       });
       Object.assign(information, {
         karma: {
           name: "Karma, Channeler — Unit",
           text: "Muestra dos ideas distintas: al jugarla activa " + t("vision", "Vision") + ", y su otro efecto puede hacer un " + t("buff", "buff") + " cuando reciclas cartas a tu Main Deck.",
-          translation: "<b>[Vision] (When I play, Predict):</b> cuando la juegas, haz " + t("predict", "Predict") + ".<br><b>When you recycle one or more cards to your Main Deck, buff a friendly unit:</b> cuando recicles una o más cartas a tu Main Deck, da un " + t("buff", "buff") + " a una unit aliada."
+          translation: "<b>Texto actualizado:</b><br><b>" + t("vision", "Vision") + ":</b> cuando me juegas, mira la carta superior de tu Main Deck; puedes " + t("recycle", "reciclarla") + ".<br>Cuando recicles una o más cartas a tu Main Deck, da un " + t("buff", "buff") + " a una Unit aliada. (Las Runes no son cartas.)"
         },
         clothArmor: {
           name: "Cloth Armor — Equipment Gear",
           text: "Sirve para ver las dos rutas: con " + t("quickDraw", "Quick-Draw") + " entra desde tu mano como respuesta y se adjunta; con " + t("equip", "Equip") + " pagas su coste más tarde para adjuntarlo a una unit tuya.",
-          translation: "<b>[Quick-Draw] (Reaction. When you play this, attach it to a unit you control):</b> es una " + t("reaction", "Reaction") + "; cuando la juegas, " + t("attach", "adjúntala") + " a una unit que controlas.<br><b>[Equip] Calm Rune:</b> recicla una Calm Rune para " + t("attach", "adjuntarla") + " a una unit que controlas."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("quickDraw", "Quick-Draw") + ":</b> esta carta tiene " + t("reaction", "Reaction") + ". Cuando la juegas, " + t("attach", "adjúntala") + " a una Unit que controlas.<br><b>" + t("equip", "Equip") + " — 1 Mind Power:</b> paga 1 Mind Power para adjuntarla a una Unit que controlas."
         },
         rengar: {
           name: "Rengar, Unseen — Unit",
           text: "Una sola Unit junta cuatro keywords. Es buen recordatorio de que no todas entran a la Chain: varias sólo modifican cómo entra, se mueve o combate una Unit.",
-          translation: "<b>[Accelerate]:</b> paga el coste extra indicado para que entre " + t("ready", "ready") + ".<br><b>[Assault 2]:</b> +2 " + t("might", "Might") + " mientras ataca.<br><b>[Deflect]:</b> encarece spells y abilities rivales que lo eligen.<br><b>[Ganking]:</b> puede moverse de un Battlefield a otro con un movimiento estándar."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("accelerate", "Accelerate") + ":</b> puedes pagar 1 Energy y 1 Fury Power como coste adicional para que entre " + t("ready", "ready") + ".<br><b>" + t("assault", "Assault") + " 2:</b> +2 Might mientras sea atacante.<br><b>" + t("deflect", "Deflect") + ":</b> los rivales pagan 1 Power adicional para elegirlo con un Spell o ability.<br><b>" + t("ganking", "Ganking") + ":</b> puede moverse de Battlefield a Battlefield con un movimiento estándar."
         },
         carrion: {
           name: "Carrion Dredger — Unit",
           text: "La carta espera a morir: entonces su " + t("deathknell", "Deathknell") + " crea una nueva unit token Bird en tu Base. No ocurre al jugarla.",
-          translation: "<b>[Deathknell] Play a 1 Might Bird token with Deflect to your Base:</b> cuando muera, juega en tu Base un token Bird de 1 " + t("might", "Might") + " con " + t("deflect", "Deflect") + "."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("deathknell", "Deathknell") + ":</b> juega en tu Base un token Bird de 1 " + t("might", "Might") + " con " + t("deflect", "Deflect") + "."
         },
         edgeNight: {
           name: "Edge of Night — Equipment Gear",
@@ -1421,7 +1594,7 @@
         undyingLegion: {
           name: "Undying Legion — Unit",
           text: "No basta con que esté en el Trash: su texto de " + t("legion", "Legion") + " sólo aparece si ya jugaste otra carta ese turno.",
-          translation: "<b>[Legion] You may play me from Trash for 3 Chaos Power:</b> si ya jugaste otra carta este turno, puedes jugar esta carta desde tu Trash pagando 3 Chaos " + t("power", "Power") + "."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("legion", "Legion") + ":</b> puedes jugarme desde tu Trash pagando 3 Fury " + t("power", "Power") + ". (Obtienes este efecto si ya jugaste otra carta este turno.)"
         },
         towering: {
           name: "Towering Combatant — Unit",
@@ -1430,53 +1603,58 @@
         },
         sumpworks: {
           name: "Sumpworks Map — Gear",
-          text: "Es un Gear de una sola ventana: puede responder al score rival, pero " + t("temporary", "Temporary") + " garantiza que se vaya al comienzo de tu siguiente turno.",
-          translation: "<b>[Reaction] [Temporary] When an opponent scores, draw 1:</b> como " + t("reaction", "Reaction") + ", cuando un rival puntúe roba 1. " + t("temporary", "Temporary") + " la mata al inicio de tu próxima Beginning Phase, antes de puntuar."
+          text: "Puede entrar como " + t("reaction", "Reaction") + ". Mientras siga en mesa te hace robar cuando el rival puntúa; " + t("temporary", "Temporary") + " garantiza que no permanezca indefinidamente.",
+          translation: "<b>Texto de reglas:</b><br><b>" + t("reaction", "Reaction") + ".</b><br><b>" + t("temporary", "Temporary") + ":</b> mata esta carta al inicio de la Beginning Phase de su controlador, antes de puntuar.<br>Cuando un oponente puntúe, " + t("draw", "roba") + " 1 carta."
         },
         bloodRush: {
           name: "Blood Rush — Spell",
           text: "" + t("repeat", "Repeat") + " no duplica la carta en la Chain. Es un pago extra que hace que el mismo spell ejecute su instrucción una vez más al resolver.",
-          translation: "<b>[Action] [Repeat 1 Energy]:</b> puedes pagar 1 Energy extra al jugarla para repetir su efecto.<br><b>Give a unit [Assault 2] this turn:</b> da a una unit " + t("assault", "Assault") + " 2 este turno (+2 Might mientras ataque). Con Repeat puedes elegir la misma unit o otra para la ejecución adicional."
+          translation: "<b>Texto actualizado:</b><br><b>" + t("action", "Action") + ".</b><br><b>" + t("repeat", "Repeat") + " — 1 Energy:</b> puedes pagar ese coste adicional para repetir el efecto del Spell.<br>Da a una Unit " + t("assault", "Assault") + " 2 este turno (+2 Might mientras sea atacante)."
         },
         morgana: {
           name: "Morgana, Vindictive — Unit",
           text: "" + t("ambush", "Ambush") + " le da una entrada sorpresa, pero sólo si la juegas a un Battlefield donde ya controlas alguna Unit.",
-          translation: "<b>[Ambush]:</b> puedes jugarla como " + t("reaction", "Reaction") + " a un Battlefield donde ya tienes units.<br><b>When you play me, deal damage to a unit equal to the damage marked on it:</b> cuando la juegas, inflige a una unit daño igual al daño marcado sobre ella."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("ambush", "Ambush") + ":</b> puedes jugarme como " + t("reaction", "Reaction") + " a un Battlefield donde tengas Units.<br>Cuando me juegas, inflige a una Unit una cantidad de daño igual al daño marcado sobre ella."
         },
         zenithBlade: {
           name: "Zenith Blade — Spell",
           text: "Es un ejemplo muy limpio de " + t("stun", "Stun") + ": elige una unit enemiga en un Battlefield y evita que haga daño de combate este turno.",
-          translation: "<b>[Action] Stun an enemy unit at a battlefield:</b> como " + t("action", "Action") + ", aturde una unit enemiga en un Battlefield.<br><b>You may move a friendly unit to that enemy unit's battlefield:</b> después puedes mover una unit aliada al Battlefield de esa unit enemiga."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("action", "Action") + ".</b><br>" + t("stun", "Aturde") + " un enemigo en un Battlefield. Puedes mover una Unit aliada al Battlefield de esa Unit enemiga."
         },
         adaptatron: {
           name: "Adaptatron — Unit",
           text: "Su efecto de conquistar muestra exactamente qué significa " + t("buff", "buff") + ": sólo obtiene +1 Might si todavía no tiene uno.",
-          translation: "<b>When I conquer, you may kill a gear. If you do, buff me:</b> cuando conquiste, puedes matar un Gear. Si lo haces, dame un " + t("buff", "buff") + ".<br><b>If I don't have a buff, I get a +1 Might buff:</b> si no tenía buff, recibe un buff de +1 Might."
+          translation: "<b>Texto de reglas:</b><br>Cuando conquiste, puedes matar un Gear. Si lo haces, dame un " + t("buff", "buff") + ". (Si no tengo un buff, recibo un buff de +1 Might.)"
         },
         strikeDown: {
           name: "Strike Down — Spell",
           text: "Muestra que " + t("detach", "Detach") + " no es algo que haces por gusto: esta carta es la que te indica desprender un Equipment de una unit equipada.",
-          translation: "<b>Choose an equipped friendly unit. It deals damage equal to its Might to an enemy unit. Then detach an Equipment from it:</b> elige una unit aliada equipada; hace daño igual a su Might a una unit enemiga y luego desprende uno de sus Equipment."
+          translation: "<b>Texto de reglas:</b><br>Elige una Unit aliada equipada. Inflige daño igual a su Might a una Unit enemiga. Después, " + t("detach", "separa") + " uno de sus Equipment."
         },
         allay: {
           name: "Allay, Eager Admirer — Unit",
           text: "Es un ejemplo directo de " + t("deflect", "Deflect") + ": al rival le cuesta Power adicional elegirla con un Spell o ability.",
-          translation: "<b>[Deflect]:</b> los oponentes deben pagar 1 Power adicional para elegirla con un spell o ability.<br><b>While I'm at a battlefield, your other units here have Deflect:</b> mientras esté en un Battlefield, tus otras units allí también tienen Deflect."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("deflect", "Deflect") + ":</b> los oponentes deben pagar 1 Power adicional para elegirme con un Spell o ability.<br>Mientras esté en un Battlefield, tus otras Units aquí tienen Deflect."
         },
         yasuoWindrider: {
           name: "Yasuo, Windrider — Unit",
           text: "" + t("ganking", "Ganking") + " es lo que le permite hacer su movimiento estándar de Battlefield a Battlefield; luego su texto cuenta cuántas veces se movió.",
-          translation: "<b>[Ganking] (I can move from battlefield to battlefield):</b> puede moverse de un Battlefield a otro.<br><b>The third time I move in a turn, you score 1 point:</b> la tercera vez que se mueve en un turno, anotas 1 punto."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("ganking", "Ganking") + ":</b> puedo moverme de Battlefield a Battlefield.<br>La tercera vez que me mueva en un turno, anota 1 punto."
         },
         zhonyas: {
           name: "Zhonya's Hourglass — Gear",
           text: "Esta carta usa " + t("hidden", "Hidden") + ": puedes dejarla oculta boca abajo y jugarla como respuesta a partir de tu siguiente turno.",
-          translation: "<b>[Hidden]:</b> escóndela ahora pagando una Rune para reaccionar con ella después por 0.<br><b>If a friendly unit would die, kill this instead. Heal that unit, exhaust it, and recall it:</b> si una unit aliada fuera a morir, mata este Gear en su lugar; cura, exhausta y devuelve esa unit a su Base."
+          translation: "<b>Texto actualizado:</b><br><b>" + t("hidden", "Hidden") + ":</b> ocúltala ahora pagando 1 Power genérico para reaccionar con ella después por 0.<br>Si una Unit aliada fuera a morir, mata esta carta en su lugar. Cura esa Unit, " + t("exhaust", "exháustala") + " y hazle recall: envíala a su " + t("base", "Base") + ". Esto no cuenta como movimiento."
         },
         alphaWildclaw: {
           name: "Alpha Wildclaw — Unit",
           text: "Es un " + t("tank", "Tank") + " puro: durante daño de combate debe recibir daño primero, así protege a otras units aliadas que no tengan Tank.",
-          translation: "<b>[Tank] (I must be assigned combat damage first):</b> debe recibir primero el daño de combate.<br><b>Your units here with less Might than me can't be chosen by enemy spells and abilities:</b> las units aliadas aquí con menos Might no pueden ser elegidas por spells o abilities enemigas."
+          translation: "<b>Texto de reglas:</b><br><b>" + t("tank", "Tank") + ":</b> se me debe asignar primero el daño de combate.<br>Tus Units aquí con menos Might que yo no pueden ser elegidas por Spells ni abilities enemigas."
+        },
+        zephyrSage: {
+          name: "Zephyr Sage — Unit",
+          text: "Es un ejemplo directo de " + t("shield", "Shield") + ": su Might sube sólo cuando esta Unit está defendiendo.",
+          translation: "<b>Texto de reglas:</b><br><b>" + t("shield", "Shield") + ":</b> +1 Might mientras sea defensora."
         }
       });
       const speedState = {
@@ -1616,8 +1794,15 @@
       const rule = root.querySelector("#scene-rule");
       const reading = root.querySelector("#card-reading");
       const preview = root.querySelector("#card-preview");
+      const previewDialog = root.querySelector("#card-preview-dialog");
       const previewImage = root.querySelector("#card-preview-image");
       const previewCaption = root.querySelector("#card-preview-caption");
+      const previewClose = root.querySelector("#card-preview-close");
+      const previewTitle = root.querySelector("#card-preview-title");
+      const previewFunction = root.querySelector("#card-preview-function");
+      const previewTranslation = root.querySelector("#card-preview-translation");
+      const previewCase = root.querySelector("#card-preview-case");
+      const previewCaseLabel = root.querySelector(".preview-case-label");
       const popover = root.querySelector("#term-popover");
       const back = root.querySelector("#back");
       const next = root.querySelector("#next");
@@ -1659,9 +1844,17 @@
       const altBack = root.querySelector("#alt-back");
       const altNext = root.querySelector("#alt-next");
       const moduleLinks = document.querySelectorAll("[data-module-link]");
+      const moduleMenu = document.querySelector(".module-menu");
+      const moduleMenuToggle = document.querySelector("#module-menu-toggle");
       let step = 0;
       let altStep = 0;
       let tooltipTimer;
+      let currentPreviewOpener = null;
+      let touchStartY = 0;
+      let touchStartX = 0;
+      let touchDeltaY = 0;
+      let swipeCanClose = false;
+      let suppressPreviewFocus = false;
 
       function setActiveModule(link) {
         moduleLinks.forEach(item => {
@@ -1674,6 +1867,12 @@
       function syncModuleMenu() {
         const matchingLink = document.querySelector('[data-module-link][data-module="' + modulePage + '"]');
         setActiveModule(matchingLink || moduleLinks[0]);
+      }
+
+      function setModuleMenu(open) {
+        moduleMenu.classList.toggle("is-open", open);
+        moduleMenuToggle.setAttribute("aria-expanded", String(open));
+        moduleMenuToggle.querySelector(".module-menu-toggle-icon").textContent = open ? "⌃" : "⌄";
       }
 
       function termMarkup(key) {
@@ -1699,6 +1898,8 @@
       }
       function wireTerms(scope = root) {
         scope.querySelectorAll(".term").forEach(button => {
+          if (button.dataset.termWired === "true") return;
+          button.dataset.termWired = "true";
           button.addEventListener("mouseenter", () => showTerm(button));
           button.addEventListener("focus", () => showTerm(button));
           button.addEventListener("mouseleave", hideTerm);
@@ -1706,13 +1907,28 @@
           button.addEventListener("click", () => showTerm(button));
         });
       }
-      function resetReading() {
-        preview.classList.remove("is-visible");
+      function closePreview(restoreFocus = false) {
+        const opener = currentPreviewOpener;
+        preview.classList.remove("is-visible", "is-pinned");
+        document.body.classList.remove("preview-open");
+        preview.setAttribute("aria-hidden", "true");
         preview.dataset.pinned = "";
-        reading.textContent = "Pasa el mouse sobre una carta para ver su vista ampliada, qué función cumple aquí y la traducción de su texto. Haz clic para dejarla fija; pulsa Escape para cerrarla.";
+        previewDialog.style.transform = "";
+        popover.classList.remove("is-visible");
+        root.querySelectorAll(".rb-card.is-active").forEach(active => active.classList.remove("is-active"));
+        currentPreviewOpener = null;
+        if (restoreFocus && opener) {
+          suppressPreviewFocus = true;
+          opener.focus({ preventScroll: true });
+          window.requestAnimationFrame(() => { suppressPreviewFocus = false; });
+        }
+      }
+      function resetReading() {
+        closePreview(false);
+        reading.textContent = "En computadora pasa el mouse; en celular toca una carta. La vista fija incluye función, traducción y ejemplo. Ciérrala con ×, Escape o deslizando hacia abajo.";
       }
       function setCardImage(element, kind) {
-        const backup = fallbackImage[kind];
+        const backup = fallbackImage[kind] || (information[kind] ? referenceCard(information[kind].name.split(" —")[0], "CARTA DE REFERENCIA", "—", ["La imagen real no cargó.", "La traducción y el ejemplo", "siguen disponibles al tocar."], "#285b70") : "");
         element.dataset.usingFallback = "";
         element.onerror = () => {
           if (!backup || element.dataset.usingFallback === "yes") return;
@@ -1721,7 +1937,28 @@
         };
         element.src = image[kind] || backup;
       }
-      function card(kind, caption, extraClass = "") {
+      const keywordUseCases = {
+        stun: "Tu rival tiene una Unit fuerte defendiendo. Juegas Zenith Blade, la aturdes y puedes mover una Unit aliada a ese Battlefield. La enemiga se queda ahí, pero no hará daño de combate este turno.",
+        buff: "Adaptatron conquista. Puedes matar uno de tus Gear y darle un buff. Si todavía no tenía uno, recibe un marcador de +1 Might; un segundo buff no se acumula encima.",
+        attach: "Juegas Cloth Armor con Quick-Draw y eliges una Unit tuya. Coloca el Equipment debajo de esa Unit: ahora está attached y sus reglas se aplican a la Unit que lo lleva.",
+        detach: "Tu Unit equipada tiene 5 Might. Strike Down hace que inflija 5 de daño a una Unit enemiga y después separas uno de sus Equipment. Detach no significa matar el Gear.",
+        accelerate: "Al jugar Rengar pagas su coste normal y, además, el coste de Accelerate: 1 Energy y 1 Fury Power. Entonces entra ready; si no pagas ese extra, entra exhausted.",
+        assault: "Jinx tiene 4 Might. Cuando es atacante, Assault 2 la hace combatir con 6 Might. Si defiende o está en Base, esa bonificación no existe.",
+        deathknell: "Carrion Dredger muere y va al Trash. Su Deathknell crea en tu Base un token Bird de 1 Might con Deflect. No se dispara si sólo vuelve a la Base o a la mano.",
+        deflect: "El rival quiere elegir Allay con un Spell: debe pagar 1 Power adicional. Si Allay está en un Battlefield, tus otras Units allí también reciben Deflect.",
+        ganking: "Yasuo usa su movimiento estándar para ir directamente de un Battlefield a otro. La tercera vez que se mueve durante el mismo turno, su otra habilidad te hace anotar 1 punto.",
+        hidden: "En tu turno pagas 1 Power genérico y escondes Zhonya's Hourglass boca abajo. Desde tu siguiente turno, si una Unit aliada fuera a morir, puedes jugarlo por 0 como Reaction para sustituir esa muerte.",
+        legion: "Primero juegas cualquier otra carta. Más tarde ese turno, Legion está activo y puedes jugar Undying Legion desde tu Trash pagando 3 Fury Power. Sin una carta previa, no obtienes ese permiso.",
+        shield: "Zephyr Sage está defendiendo, así que Shield le da +1 Might durante ese combate. Si la misma Unit fuera atacante, Shield no aumentaría su Might.",
+        tank: "Alpha Wildclaw y otra Unit defienden juntas. El atacante debe asignar primero daño letal a Alpha antes de asignar daño de combate a tus Units sin Tank.",
+        temporary: "Juegas Sumpworks Map como Reaction y queda en mesa. Más tarde, cuando un oponente puntúa, robas 1. Al inicio de la siguiente Beginning Phase de su controlador, muere antes de puntuar.",
+        vision: "Juegas Karma. Vision mira la carta superior de tu Main Deck y puedes reciclarla. Si reciclas esa carta, la otra habilidad de Karma da un buff; reciclar una Rune no la dispara, porque las Runes no son cartas.",
+        equip: "Cloth Armor ya está en mesa sin estar adjunto. Pagas 1 Mind Power y activas Equip para colocarlo debajo de una Unit que controlas. No vuelves a jugar el Gear.",
+        quickDraw: "El rival abre una Chain. Como Cloth Armor tiene Quick-Draw, puedes jugarlo desde tu mano como Reaction y adjuntarlo de inmediato a una Unit tuya; no pagas Equip además.",
+        repeat: "Juegas Blood Rush pagando su coste normal y 1 Energy extra por Repeat. Al resolver, da Assault 2 una vez y repite ese efecto una vez más; sigue siendo un solo Spell en la Chain.",
+        ambush: "Ya controlas una Unit en un Battlefield. Durante una Chain juegas Morgana allí como Reaction. Al entrar, puede infligir a una Unit dañada una cantidad de daño igual al que ya tenía marcado."
+      };
+      function card(kind, caption, extraClass = "", contextTerm = "") {
         const item = document.createElement("button");
         item.type = "button";
         item.className = "rb-card " + extraClass;
@@ -1733,20 +1970,39 @@
         tag.textContent = caption;
         item.append(picture, tag);
         const show = (pinned = false) => {
+          if (suppressPreviewFocus) return;
+          if (preview.dataset.pinned && !pinned) return;
           root.querySelectorAll(".rb-card.is-active").forEach(active => active.classList.remove("is-active"));
           item.classList.add("is-active");
-          reading.innerHTML = "<b>" + information[kind].name + ":</b><span class=\"reading-label function\">Qué hace en esta escena</span>" + information[kind].text + "<span class=\"reading-label translation\">Traducción del texto de la carta</span>" + information[kind].translation;
+          const useCase = contextTerm ? keywordUseCases[contextTerm] : "";
+          reading.innerHTML = "<b>" + information[kind].name + ":</b><span class=\"reading-label function\">Qué hace en esta escena</span>" + information[kind].text + "<span class=\"reading-label translation\">Traducción precisa del texto</span>" + information[kind].translation + (useCase ? "<span class=\"reading-label case\">Caso hipotético</span>" + useCase : "");
           wireTerms(reading);
           setCardImage(previewImage, kind);
           previewImage.alt = information[kind].name;
-          previewCaption.textContent = information[kind].name + (pinned ? " · vista fijada (Escape para cerrar)" : " · vista ampliada");
+          previewCaption.textContent = information[kind].name + (pinned ? " · toca × o desliza hacia abajo para cerrar" : " · vista ampliada");
+          previewTitle.textContent = information[kind].name;
+          previewFunction.innerHTML = information[kind].text;
+          previewTranslation.innerHTML = information[kind].translation;
+          previewCase.textContent = useCase;
+          previewCase.hidden = !useCase;
+          previewCaseLabel.hidden = !useCase;
+          wireTerms(previewDialog);
           preview.classList.add("is-visible");
-          if (pinned) preview.dataset.pinned = kind;
+          preview.setAttribute("aria-hidden", "false");
+          if (pinned) {
+            preview.dataset.pinned = kind;
+            preview.classList.add("is-pinned");
+            document.body.classList.add("preview-open");
+            currentPreviewOpener = item;
+            previewDialog.scrollTop = 0;
+            window.requestAnimationFrame(() => previewClose.focus({ preventScroll: true }));
+          }
         };
         const hide = () => {
           if (preview.dataset.pinned === kind) return;
           item.classList.remove("is-active");
           preview.classList.remove("is-visible");
+          preview.setAttribute("aria-hidden", "true");
         };
         item.addEventListener("mouseenter", () => show(false));
         item.addEventListener("focus", () => show(false));
@@ -1768,7 +2024,7 @@
           ganking: ["yasuoWindrider", "🃏 Yasuo, Windrider"],
           hidden: ["zhonyas", "🃏 Zhonya's Hourglass"],
           legion: ["undyingLegion", "🃏 Undying Legion"],
-          shield: ["clothArmor", "🃏 Cloth Armor"],
+          shield: ["zephyrSage", "🃏 Zephyr Sage"],
           tank: ["alphaWildclaw", "🃏 Alpha Wildclaw"],
           temporary: ["sumpworks", "🃏 Sumpworks Map"],
           vision: ["karma", "🃏 Karma, Channeler"],
@@ -1781,7 +2037,10 @@
           const slot = keywordCardSlots[term];
           if (!slot) return;
           slot.innerHTML = "";
-          slot.appendChild(card(kind, caption));
+          const useCase = document.createElement("div");
+          useCase.className = "keyword-use-case";
+          useCase.innerHTML = "<b>🧪 Caso hipotético</b><p>" + keywordUseCases[term] + "</p>";
+          slot.append(card(kind, caption, "", term), useCase);
         });
       }
       function renderSpeedState(key) {
@@ -1966,14 +2225,49 @@
       back.addEventListener("click", () => { if (step > 0) { step--; resetReading(); render(); } });
       next.addEventListener("click", () => { if (step < scene.length - 1) { step++; resetReading(); render(); } });
       speedButtons.forEach(button => button.addEventListener("click", () => renderSpeedState(button.dataset.speed)));
-      moduleLinks.forEach(link => link.addEventListener("click", () => setActiveModule(link)));
+      moduleLinks.forEach(link => link.addEventListener("click", () => {
+        setActiveModule(link);
+        setModuleMenu(false);
+      }));
+      moduleMenuToggle.addEventListener("click", () => setModuleMenu(!moduleMenu.classList.contains("is-open")));
+      document.addEventListener("click", event => {
+        if (window.innerWidth <= 780 && moduleMenu.classList.contains("is-open") && !moduleMenu.contains(event.target)) setModuleMenu(false);
+      });
+      previewClose.addEventListener("click", () => closePreview(true));
+      preview.addEventListener("click", event => {
+        if (event.target === preview) closePreview(true);
+      });
+      previewDialog.addEventListener("touchstart", event => {
+        if (!preview.classList.contains("is-pinned") || event.touches.length !== 1) return;
+        touchStartY = event.touches[0].clientY;
+        touchStartX = event.touches[0].clientX;
+        touchDeltaY = 0;
+        swipeCanClose = previewDialog.scrollTop <= 2;
+      }, { passive: true });
+      previewDialog.addEventListener("touchmove", event => {
+        if (!swipeCanClose || event.touches.length !== 1) return;
+        const deltaY = event.touches[0].clientY - touchStartY;
+        const deltaX = event.touches[0].clientX - touchStartX;
+        if (deltaY <= 0 || Math.abs(deltaY) <= Math.abs(deltaX) * 1.15) return;
+        touchDeltaY = deltaY;
+        previewDialog.style.transform = "translateY(" + Math.min(deltaY, 180) + "px)";
+        if (deltaY > 12) event.preventDefault();
+      }, { passive: false });
+      const finishPreviewSwipe = () => {
+        if (!swipeCanClose) return;
+        if (touchDeltaY >= 90) closePreview(false);
+        else previewDialog.style.transform = "";
+        swipeCanClose = false;
+        touchDeltaY = 0;
+      };
+      previewDialog.addEventListener("touchend", finishPreviewSwipe, { passive: true });
+      previewDialog.addEventListener("touchcancel", finishPreviewSwipe, { passive: true });
       altBack.addEventListener("click", () => { if (altStep > 0) { altStep--; resetReading(); renderAlternativeChain(); } });
       altNext.addEventListener("click", () => { if (altStep < alternativeChain.length - 1) { altStep++; resetReading(); renderAlternativeChain(); } });
       document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
-          preview.classList.remove("is-visible");
-          preview.dataset.pinned = "";
-          root.querySelectorAll(".rb-card.is-active").forEach(active => active.classList.remove("is-active"));
+          if (preview.classList.contains("is-visible")) closePreview(true);
+          if (moduleMenu.classList.contains("is-open")) setModuleMenu(false);
         }
       });
       renderSpeedExamples();
