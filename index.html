@@ -3,23 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="El Rifty es una guía comunitaria no oficial para aprender Riftbound, estudiar cartas, construir mazos y encontrar dónde practicar.">
+  <meta name="description" content="El Rifty: acceso directo para aprender Riftbound, estudiar cartas, construir mazos, consultar las reglas y practicar.">
   <meta name="theme-color" content="#08131b">
   <title>El Rifty · Aprende Riftbound</title>
   <style>
     :root {
       color-scheme: dark;
-      --ink: #071118;
-      --panel: rgba(13, 30, 39, .86);
-      --panel-strong: #102630;
-      --line: rgba(128, 207, 204, .2);
+      --bg: #071118;
+      --panel: rgba(15, 34, 43, .9);
+      --panel-hover: #142f3a;
+      --line: rgba(127, 206, 203, .2);
       --text: #f6f2e7;
       --muted: #a9bbc0;
       --gold: #f1c96b;
-      --teal: #69d6d1;
-      --violet: #a88bff;
-      --radius: 22px;
-      --shadow: 0 24px 65px rgba(0, 0, 0, .32);
+      --teal: #6ad7d2;
+      --violet: #aa8fff;
+      --radius: 20px;
     }
 
     * { box-sizing: border-box; }
@@ -30,188 +29,149 @@
       min-height: 100vh;
       color: var(--text);
       background:
-        radial-gradient(circle at 12% 4%, rgba(56, 158, 156, .17), transparent 32rem),
-        radial-gradient(circle at 92% 15%, rgba(120, 82, 201, .13), transparent 30rem),
-        linear-gradient(145deg, #061017 0%, #091820 48%, #061016 100%);
-      font: 500 16px/1.6 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        radial-gradient(circle at 10% 0%, rgba(67, 176, 172, .15), transparent 28rem),
+        radial-gradient(circle at 100% 10%, rgba(138, 94, 224, .11), transparent 28rem),
+        linear-gradient(145deg, #061017, #0a1921 52%, #061016);
+      font: 500 16px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
-
     body::before {
       content: "";
       position: fixed;
       inset: 0;
       pointer-events: none;
-      opacity: .18;
+      opacity: .15;
       background-image:
         linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
         linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
       background-size: 44px 44px;
-      mask-image: linear-gradient(to bottom, #000, transparent 75%);
     }
-
     a { color: inherit; }
     a:focus-visible { outline: 3px solid var(--teal); outline-offset: 4px; }
-    .shell { width: min(1160px, calc(100% - 40px)); margin: 0 auto; }
+    .shell { position: relative; width: min(1120px, calc(100% - 36px)); margin: 0 auto; }
 
-    .site-header {
-      position: relative;
-      z-index: 5;
+    header {
       display: flex;
+      min-height: 74px;
       align-items: center;
       justify-content: space-between;
-      min-height: 82px;
-      border-bottom: 1px solid rgba(255,255,255,.06);
+      border-bottom: 1px solid rgba(255,255,255,.07);
     }
-
-    .brand { display: inline-flex; align-items: center; gap: 12px; text-decoration: none; }
+    .brand { display: inline-flex; align-items: center; gap: 11px; text-decoration: none; }
     .brand-mark {
       display: grid;
-      width: 42px;
+      width: 39px;
       aspect-ratio: 1;
       place-items: center;
-      border: 1px solid rgba(241, 201, 107, .55);
-      border-radius: 14px;
+      border: 1px solid rgba(241,201,107,.55);
+      border-radius: 13px;
       color: var(--gold);
-      background: linear-gradient(145deg, rgba(241,201,107,.18), rgba(105,214,209,.06));
-      box-shadow: inset 0 0 20px rgba(241,201,107,.06);
-      font: 800 23px/1 Georgia, serif;
+      background: rgba(241,201,107,.08);
+      font: 800 21px/1 Georgia, serif;
     }
-    .brand-copy { display: grid; line-height: 1.05; }
-    .brand-copy strong { letter-spacing: .07em; }
-    .brand-copy small { margin-top: 5px; color: var(--muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
-    .header-link { color: var(--muted); font-size: .9rem; text-decoration: none; }
-    .header-link:hover { color: var(--text); }
+    .brand strong { letter-spacing: .07em; }
+    .unofficial { color: var(--muted); font-size: .72rem; letter-spacing: .09em; text-transform: uppercase; }
 
-    .hero {
-      position: relative;
+    main { padding: clamp(34px, 6vw, 68px) 0 60px; }
+    .intro { margin-bottom: 28px; }
+    h1 { margin: 0; font: 700 clamp(2.25rem, 5vw, 4rem)/1 Georgia, serif; letter-spacing: -.035em; }
+    .intro p { max-width: 700px; margin: 12px 0 0; color: var(--muted); font-size: clamp(.95rem, 1.7vw, 1.08rem); }
+
+    .options {
       display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(260px, .75fr);
-      gap: 54px;
-      align-items: center;
-      padding: 92px 0 78px;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 16px;
     }
-    .eyebrow { margin: 0 0 18px; color: var(--gold); font-size: .76rem; font-weight: 800; letter-spacing: .19em; text-transform: uppercase; }
-    h1 { max-width: 760px; margin: 0; font: 700 clamp(3.4rem, 8vw, 6.4rem)/.91 Georgia, "Times New Roman", serif; letter-spacing: -.055em; }
-    .hero-copy { max-width: 700px; margin: 26px 0 0; color: #c4d1d3; font-size: clamp(1.05rem, 2vw, 1.24rem); }
-    .hero-copy strong { color: var(--text); }
-    .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
-
-    .button {
-      display: inline-flex;
-      min-height: 50px;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      padding: 0 20px;
-      border: 1px solid transparent;
-      border-radius: 14px;
-      font-weight: 800;
+    .option {
+      position: relative;
+      display: flex;
+      min-height: 210px;
+      flex-direction: column;
+      overflow: hidden;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(150deg, var(--panel), rgba(8,23,31,.88));
+      box-shadow: 0 20px 48px rgba(0,0,0,.24);
       text-decoration: none;
       transition: transform .18s ease, border-color .18s ease, background .18s ease;
     }
-    .button:hover { transform: translateY(-2px); }
-    .button-primary { color: #091318; background: linear-gradient(135deg, #f1c96b, #e5af4f); box-shadow: 0 12px 30px rgba(229,175,79,.2); }
-    .button-secondary { border-color: rgba(255,255,255,.15); background: rgba(255,255,255,.045); }
-    .button-secondary:hover { border-color: rgba(105,214,209,.55); background: rgba(105,214,209,.07); }
-    .arrow { font-size: 1.15em; }
-
-    .rift-orbit {
-      position: relative;
-      width: min(100%, 350px);
-      aspect-ratio: 1;
-      justify-self: end;
-      display: grid;
-      place-items: center;
-      border: 1px solid rgba(105,214,209,.16);
+    a.option:hover { transform: translateY(-4px); border-color: rgba(106,215,210,.5); background: linear-gradient(150deg, var(--panel-hover), rgba(9,25,33,.94)); }
+    .primary { grid-column: span 2; }
+    .secondary { grid-column: span 3; min-height: 190px; }
+    .option::after {
+      content: "";
+      position: absolute;
+      width: 145px;
+      height: 145px;
+      top: -80px;
+      right: -65px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(105,214,209,.12), rgba(8,19,27,.15) 45%, transparent 67%);
-      box-shadow: inset 0 0 70px rgba(105,214,209,.07), 0 0 90px rgba(98,116,213,.08);
+      background: var(--glow, rgba(106,215,210,.12));
     }
-    .rift-orbit::before, .rift-orbit::after { content: ""; position: absolute; border-radius: 50%; transform: rotate(-18deg); }
-    .rift-orbit::before { inset: 15%; border: 2px solid rgba(241,201,107,.5); border-left-color: transparent; border-bottom-color: rgba(105,214,209,.25); }
-    .rift-orbit::after { inset: 29%; border: 1px solid rgba(105,214,209,.48); border-right-color: transparent; }
-    .rift-core { width: 32%; aspect-ratio: 1; rotate: 45deg; border: 1px solid rgba(241,201,107,.8); border-radius: 22px 7px; background: linear-gradient(135deg, rgba(241,201,107,.23), rgba(105,214,209,.18)); box-shadow: 0 0 45px rgba(105,214,209,.22); }
-    .orbit-label { position: absolute; bottom: 15%; color: var(--muted); font-size: .78rem; letter-spacing: .15em; text-transform: uppercase; }
+    .cards { --glow: rgba(170,143,255,.15); }
+    .deck { --glow: rgba(241,201,107,.14); }
+    .rules { --glow: rgba(106,215,210,.13); }
+    .practice { --glow: rgba(240,113,94,.12); }
+    .icon {
+      display: grid;
+      width: 46px;
+      aspect-ratio: 1;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      background: rgba(255,255,255,.04);
+      font-size: 1.3rem;
+    }
+    .option h2 { margin: 24px 0 7px; font: 700 1.35rem/1.15 Georgia, serif; }
+    .option p { margin: 0; color: var(--muted); font-size: .9rem; }
+    .go { margin-top: auto; padding-top: 20px; color: var(--gold); font-size: .88rem; font-weight: 800; }
 
-    section { position: relative; scroll-margin-top: 30px; }
-    .section-kicker { margin: 0 0 6px; color: var(--teal); font-size: .78rem; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
-    h2 { margin: 0; font: 700 clamp(2rem, 4vw, 3rem)/1.05 Georgia, serif; letter-spacing: -.025em; }
-    .section-intro { max-width: 690px; margin: 14px 0 0; color: var(--muted); }
-
-    .routes { padding: 62px 0; }
-    .route-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 34px; }
-    .route-card {
-      position: relative;
-      display: flex;
-      min-height: 300px;
-      flex-direction: column;
-      overflow: hidden;
-      padding: 26px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: linear-gradient(155deg, rgba(18,43,53,.92), rgba(9,25,33,.82));
-      box-shadow: var(--shadow);
+    .practice-links { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: auto; padding-top: 18px; }
+    .practice-button {
+      display: inline-flex;
+      min-height: 46px;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 0 14px;
+      border: 1px solid rgba(255,255,255,.14);
+      border-radius: 12px;
+      background: rgba(255,255,255,.045);
+      font-size: .86rem;
+      font-weight: 800;
       text-decoration: none;
-      transition: transform .2s ease, border-color .2s ease;
+      transition: border-color .18s ease, background .18s ease;
     }
-    .route-card::before { content: ""; position: absolute; width: 170px; height: 170px; top: -80px; right: -70px; border-radius: 50%; background: var(--glow, rgba(105,214,209,.13)); filter: blur(3px); }
-    .route-card:hover { transform: translateY(-5px); border-color: rgba(105,214,209,.52); }
-    .route-card:nth-child(2) { --glow: rgba(168,139,255,.15); }
-    .route-card:nth-child(3) { --glow: rgba(241,201,107,.14); }
-    .route-icon { display: grid; width: 52px; aspect-ratio: 1; place-items: center; border: 1px solid rgba(255,255,255,.12); border-radius: 15px; background: rgba(255,255,255,.04); font-size: 1.45rem; }
-    .route-number { position: absolute; top: 27px; right: 27px; color: rgba(255,255,255,.28); font: 700 1rem/1 Georgia, serif; }
-    .route-card h3 { margin: 30px 0 10px; font: 700 1.48rem/1.15 Georgia, serif; }
-    .route-card p { margin: 0; color: var(--muted); }
-    .route-cta { margin-top: auto; padding-top: 26px; color: var(--gold); font-size: .92rem; font-weight: 800; }
+    .practice-button:hover { border-color: rgba(106,215,210,.5); background: rgba(106,215,210,.08); }
 
-    .path { margin: 28px 0 74px; padding: 26px; border: 1px solid rgba(255,255,255,.08); border-radius: var(--radius); background: rgba(255,255,255,.025); }
-    .path-title { margin: 0 0 18px; font-size: .82rem; letter-spacing: .11em; text-transform: uppercase; }
-    .path-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin: 0; padding: 0; list-style: none; }
-    .path-list li { position: relative; padding: 0 24px 0 44px; color: var(--muted); }
-    .path-list li:not(:last-child)::after { content: ""; position: absolute; top: 17px; right: 0; width: 22px; height: 1px; background: rgba(105,214,209,.35); }
-    .path-step { position: absolute; left: 0; top: -2px; display: grid; width: 32px; aspect-ratio: 1; place-items: center; border: 1px solid rgba(105,214,209,.32); border-radius: 10px; color: var(--teal); background: rgba(105,214,209,.06); font-size: .8rem; font-weight: 800; }
-    .path-list strong { display: block; color: var(--text); font-size: .94rem; }
-    .path-list span:last-child { display: block; margin-top: 3px; font-size: .79rem; }
+    footer { margin-top: 42px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.07); color: #82969b; font-size: .75rem; }
+    footer p { max-width: 880px; margin: 0; }
 
-    .resources { display: grid; grid-template-columns: 1fr 1.15fr; gap: 18px; padding: 0 0 96px; }
-    .resource-card { padding: 30px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); box-shadow: var(--shadow); }
-    .resource-card h3 { margin: 18px 0 9px; font: 700 1.5rem/1.15 Georgia, serif; }
-    .resource-card p { margin: 0; color: var(--muted); }
-    .resource-card .button { width: 100%; margin-top: 26px; }
-    .practice-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 26px; }
-    .practice-buttons .button { margin: 0; }
-    .resource-tag { display: inline-flex; align-items: center; gap: 8px; color: var(--gold); font-size: .76rem; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
-
-    footer { border-top: 1px solid rgba(255,255,255,.07); }
-    .footer-inner { display: flex; justify-content: space-between; gap: 28px; padding: 28px 0 36px; color: #81959b; font-size: .78rem; }
-    .footer-inner p { max-width: 720px; margin: 0; }
-    .footer-inner a { color: #b6c7ca; text-underline-offset: 3px; }
-
-    @media (max-width: 850px) {
-      .hero { grid-template-columns: 1fr; padding-top: 68px; }
-      .rift-orbit { display: none; }
-      .route-grid { grid-template-columns: 1fr; }
-      .route-card { min-height: 240px; }
-      .path-list { grid-template-columns: 1fr 1fr; gap: 24px 0; }
-      .path-list li:nth-child(2)::after { display: none; }
-      .resources { grid-template-columns: 1fr; }
+    @media (max-width: 820px) {
+      .options { grid-template-columns: 1fr 1fr; }
+      .primary, .secondary { grid-column: span 1; min-height: 190px; }
+      .practice { grid-column: span 2; }
     }
 
     @media (max-width: 560px) {
-      .shell { width: min(100% - 28px, 1160px); }
-      .site-header { min-height: 70px; }
-      .header-link { display: none; }
-      .hero { padding: 58px 0 52px; }
-      h1 { font-size: clamp(3.25rem, 17vw, 4.7rem); }
-      .hero-actions, .hero-actions .button { width: 100%; }
-      .routes { padding-top: 44px; }
-      .route-card, .resource-card { padding: 23px; }
-      .path { padding: 22px; }
-      .path-list { grid-template-columns: 1fr; }
-      .path-list li { min-height: 52px; }
-      .path-list li::after { display: none; }
-      .practice-buttons { grid-template-columns: 1fr; }
-      .footer-inner { flex-direction: column; }
+      .shell { width: min(100% - 24px, 1120px); }
+      header { min-height: 64px; }
+      .unofficial { display: none; }
+      main { padding-top: 28px; }
+      .intro { margin-bottom: 20px; }
+      .intro p { margin-top: 8px; }
+      .options { grid-template-columns: 1fr; gap: 11px; }
+      .primary, .secondary, .practice { grid-column: 1; min-height: 0; }
+      .option { padding: 18px; }
+      a.option { display: grid; grid-template-columns: 42px 1fr auto; column-gap: 14px; align-items: center; }
+      a.option .icon { grid-row: 1 / 3; width: 42px; }
+      a.option h2 { grid-column: 2; margin: 0 0 3px; font-size: 1.15rem; }
+      a.option p { grid-column: 2; font-size: .8rem; }
+      a.option .go { grid-column: 3; grid-row: 1 / 3; align-self: center; padding: 0; font-size: 0; }
+      a.option .go::after { content: "→"; font-size: 1.2rem; }
+      .practice h2 { margin-top: 16px; }
+      .practice-links { padding-top: 15px; }
+      footer { margin-top: 28px; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -221,92 +181,63 @@
   </style>
 </head>
 <body>
-  <header class="shell site-header">
-    <a class="brand" href="#inicio" aria-label="El Rifty, volver al inicio">
+  <header class="shell">
+    <a class="brand" href="#opciones" aria-label="El Rifty, ir a las opciones">
       <span class="brand-mark" aria-hidden="true">R</span>
-      <span class="brand-copy"><strong>EL RIFTY</strong><small>Guía no oficial</small></span>
+      <strong>EL RIFTY</strong>
     </a>
-    <a class="header-link" href="#rutas">Explorar la guía ↓</a>
+    <span class="unofficial">Guía comunitaria no oficial</span>
   </header>
 
-  <main id="inicio">
-    <section class="shell hero" aria-labelledby="hero-title">
-      <div>
-        <p class="eyebrow">Aprender Riftbound, paso a paso</p>
-        <h1 id="hero-title">Bienvenido a El Rifty.</h1>
-        <p class="hero-copy">Un lugar comunitario y no oficial donde puedes <strong>aprender a jugar Riftbound</strong>, entender sus cartas, construir tus primeros mazos y encontrar dónde practicar.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="https://soycris1.github.io/el-rifty/modulos.html"><span>Empezar a aprender</span><span class="arrow" aria-hidden="true">→</span></a>
-          <a class="button button-secondary" href="#rutas">Ver todas las opciones</a>
-        </div>
-      </div>
-      <div class="rift-orbit" aria-hidden="true"><div class="rift-core"></div><span class="orbit-label">Tu ruta comienza aquí</span></div>
-    </section>
-
-    <section class="shell routes" id="rutas" aria-labelledby="routes-title">
-      <p class="section-kicker">Elige tu ruta</p>
-      <h2 id="routes-title">¿Qué quieres hacer hoy?</h2>
-      <p class="section-intro">No necesitas saber por dónde comenzar. Si eres nuevo, entra a “Aprende a jugar”; los demás espacios te servirán conforme avances.</p>
-
-      <div class="route-grid">
-        <a class="route-card" href="https://soycris1.github.io/el-rifty/modulos.html">
-          <span class="route-icon" aria-hidden="true">✦</span><span class="route-number">01</span>
-          <h3>Aprende a jugar</h3>
-          <p>Módulos visuales y ejemplos que convierten las reglas difíciles en situaciones de mesa fáciles de seguir.</p>
-          <span class="route-cta">Ir a los módulos <span aria-hidden="true">→</span></span>
-        </a>
-
-        <a class="route-card" href="https://soycris1.github.io/el-rifty/learner.html">
-          <span class="route-icon" aria-hidden="true">◫</span><span class="route-number">02</span>
-          <h3>Estudia las cartas</h3>
-          <p>Busca cartas reales, mira sus detalles y familiarízate con lo que encontrarás durante una partida.</p>
-          <span class="route-cta">Abrir el catálogo <span aria-hidden="true">→</span></span>
-        </a>
-
-        <a class="route-card" href="https://soycris1.github.io/el-rifty/decklab.html">
-          <span class="route-icon" aria-hidden="true">▱</span><span class="route-number">03</span>
-          <h3>Constructor de mazos</h3>
-          <p>Arma una idea, revisa tus cartas y convierte lo aprendido en un mazo con el que puedas jugar.</p>
-          <span class="route-cta">Construir un mazo <span aria-hidden="true">→</span></span>
-        </a>
-      </div>
-    </section>
-
-    <aside class="shell path" aria-label="Ruta recomendada para comenzar">
-      <p class="path-title">Ruta recomendada para principiantes</p>
-      <ol class="path-list">
-        <li><span class="path-step">1</span><strong>Aprende</strong><span>Comprende el turno y las reglas.</span></li>
-        <li><span class="path-step">2</span><strong>Reconoce</strong><span>Explora cartas y palabras clave.</span></li>
-        <li><span class="path-step">3</span><strong>Construye</strong><span>Prepara tu primer mazo.</span></li>
-        <li><span class="path-step">4</span><strong>Practica</strong><span>Juega para afianzar lo aprendido.</span></li>
-      </ol>
-    </aside>
-
-    <section class="shell resources" id="practica" aria-label="Reglas oficiales y sitios para practicar">
-      <article class="resource-card">
-        <span class="resource-tag">◎ Fuente primaria</span>
-        <h3>Reglas oficiales</h3>
-        <p>Cuando necesites confirmar una interacción exacta, consulta directamente el Rules Hub oficial de Riftbound.</p>
-        <a class="button button-secondary" href="https://playriftbound.com/en-us/rules-hub/" target="_blank" rel="noopener noreferrer">Consultar las reglas <span aria-hidden="true">↗</span></a>
-      </article>
-
-      <article class="resource-card">
-        <span class="resource-tag">⚔ Hora de jugar</span>
-        <h3>Practica una partida</h3>
-        <p>Cuando ya conozcas lo básico, prueba una partida en una de estas plataformas externas de la comunidad.</p>
-        <div class="practice-buttons">
-          <a class="button button-secondary" href="https://tcg-arena.fr" target="_blank" rel="noopener noreferrer">TCG Arena <span aria-hidden="true">↗</span></a>
-          <a class="button button-secondary" href="https://riftatlas.com/play" target="_blank" rel="noopener noreferrer">RiftAtlas <span aria-hidden="true">↗</span></a>
-        </div>
-      </article>
-    </section>
-  </main>
-
-  <footer>
-    <div class="shell footer-inner">
-      <p><strong>El Rifty</strong> es una herramienta comunitaria no oficial. Riftbound y League of Legends pertenecen a Riot Games y a sus respectivos titulares. Este sitio no está afiliado ni respaldado por Riot Games.</p>
-      <a href="#inicio">Volver arriba ↑</a>
+  <main class="shell" id="opciones">
+    <div class="intro">
+      <h1>¿Qué quieres hacer?</h1>
+      <p>Elige una opción. Si apenas comienzas con Riftbound, entra a “Aprende a jugar”.</p>
     </div>
-  </footer>
+
+    <section class="options" aria-label="Opciones de El Rifty">
+      <a class="option primary learn" href="https://soycris1.github.io/el-rifty/modulos.html">
+        <span class="icon" aria-hidden="true">✦</span>
+        <h2>Aprende a jugar</h2>
+        <p>Reglas explicadas con módulos y ejemplos visuales.</p>
+        <span class="go">Abrir módulos →</span>
+      </a>
+
+      <a class="option primary cards" href="https://soycris1.github.io/el-rifty/learner.html">
+        <span class="icon" aria-hidden="true">◫</span>
+        <h2>Estudia las cartas</h2>
+        <p>Busca cartas reales y aprende a reconocerlas.</p>
+        <span class="go">Abrir Card Learner →</span>
+      </a>
+
+      <a class="option primary deck" href="https://soycris1.github.io/el-rifty/decklab.html">
+        <span class="icon" aria-hidden="true">▱</span>
+        <h2>Constructor de mazos</h2>
+        <p>Prepara y revisa tu próximo mazo.</p>
+        <span class="go">Construir un mazo →</span>
+      </a>
+
+      <a class="option secondary rules" href="https://playriftbound.com/en-us/rules-hub/" target="_blank" rel="noopener noreferrer">
+        <span class="icon" aria-hidden="true">◎</span>
+        <h2>Reglas oficiales</h2>
+        <p>Consulta directamente el Rules Hub de Riftbound.</p>
+        <span class="go">Abrir reglas ↗</span>
+      </a>
+
+      <article class="option secondary practice">
+        <span class="icon" aria-hidden="true">⚔</span>
+        <h2>Practica</h2>
+        <p>Juega en una plataforma externa de la comunidad.</p>
+        <div class="practice-links">
+          <a class="practice-button" href="https://tcg-arena.fr" target="_blank" rel="noopener noreferrer">TCG Arena ↗</a>
+          <a class="practice-button" href="https://riftatlas.com/play" target="_blank" rel="noopener noreferrer">RiftAtlas ↗</a>
+        </div>
+      </article>
+    </section>
+
+    <footer>
+      <p>El Rifty es una herramienta comunitaria no oficial y no está afiliada ni respaldada por Riot Games.</p>
+    </footer>
+  </main>
 </body>
 </html>
